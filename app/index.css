@@ -23,23 +23,21 @@
 html, body {
   background-color: var(--color-bg);
   color: var(--color-ink);
+  font-family: 'Inter', sans-serif;
   margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sora), sans-serif;
+  font-family: 'Sora', sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-body {
-  font-family: var(--font-inter), sans-serif;
 }
 
 a, button {
   font-family: inherit;
 }
 
+/* Visible focus rings everywhere, never silently removed */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
@@ -57,6 +55,3 @@ a, button {
 .container-reading { max-width: 720px; margin-inline: auto; }
 .container-standard { max-width: 1280px; margin-inline: auto; }
 .container-wide { max-width: 1440px; margin-inline: auto; }
-.max-w-reading { max-width: 720px; }
-.font-heading { font-family: var(--font-sora), sans-serif; }
-.font-body { font-family: var(--font-inter), sans-serif; }
