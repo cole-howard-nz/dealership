@@ -39,44 +39,37 @@ export default function AboutPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-navy text-white py-16">
-        <div className="container-wide px-4 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="font-heading text-4xl font-bold leading-tight">
-              We check every vehicle before you do.
+      <section className="about-hero">
+        <div className="about-hero-inner container-wide px-4">
+          <div className="about-hero-copy">
+            <h1 className="about-h1">
+              We check every vehicle<br />before you do.
             </h1>
-            <p className="text-white/80 mt-4 text-lg leading-relaxed">
+            <p className="about-hero-sub">
               Northbridge Motors was built on a simple idea: if every vehicle is independently
               inspected before listing, buyers don't have to take our word for it. The report
               is there. The facts are there.
             </p>
-            <div className="flex flex-wrap gap-4 mt-8">
-              <Link
-                href="/inventory"
-                className="bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg px-6 py-3 transition-colors"
-              >
-                Browse Inventory
-              </Link>
-              <Link
-                href="/contact"
-                className="border-2 border-white/60 hover:border-white text-white font-semibold rounded-lg px-6 py-3 transition-colors"
-              >
-                Talk to the team
-              </Link>
+            <div className="flex flex-wrap gap-4">
+              <Link href="/inventory" className="about-btn-primary">Browse Inventory</Link>
+              <Link href="/contact" className="about-btn-ghost">Talk to the team</Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { stat: "100%", label: "of vehicles independently inspected" },
-              { stat: "5-step", label: "inspection before any listing goes live" },
-              { stat: "NZ-wide", label: "delivery on every vehicle we sell" },
-              { stat: "No-pressure", label: "finance — get pre-approved before you visit" },
-            ].map(({ stat, label }) => (
-              <div key={stat} className="bg-white/5 border border-white/10 rounded-xl p-5">
-                <p className="font-heading text-2xl font-bold text-accent">{stat}</p>
-                <p className="text-sm text-white/70 mt-1">{label}</p>
-              </div>
-            ))}
+
+          <div className="about-hero-stats-wrap">
+            <div className="about-hero-stats">
+              {[
+                { stat: "100%", label: "of vehicles independently inspected" },
+                { stat: "5 Step", label: "inspection before any listing goes live" },
+                { stat: "NZ Wide", label: "delivery on every vehicle we sell" },
+                { stat: "No Pressure", label: "finance — get pre-approved before you visit" },
+              ].map(({ stat, label }) => (
+                <div key={stat} className="about-stat-card">
+                  <p className="about-stat-value">{stat}</p>
+                  <p className="about-stat-label">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -159,21 +152,209 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-navy text-white py-16">
-        <div className="container-wide px-4 text-center">
-          <Users className="h-8 w-8 text-accent mx-auto mb-4" aria-hidden="true" />
-          <h2 className="font-heading text-2xl font-bold mb-3">Ready to find your next vehicle?</h2>
-          <p className="text-white/70 mb-8">Every vehicle in our inventory has been through the process above. Come see for yourself.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/inventory" className="bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg px-6 py-3 transition-colors">
-              Browse Inventory
-            </Link>
-            <Link href="/contact" className="border-2 border-white/60 hover:border-white text-white font-semibold rounded-lg px-6 py-3 transition-colors">
-              Contact Us
-            </Link>
+      <section className="about-cta-section">
+        <div className="container-wide px-4">
+          <div className="cta-band">
+            <div className="cta-band-copy">
+              <p className="cta-band-eyebrow">Every car inspected</p>
+              <h2 className="cta-band-heading">Ready to find your next vehicle?</h2>
+              <p className="cta-band-sub">Every vehicle in our inventory has been through the process above. Come see for yourself.</p>
+            </div>
+            <div className="cta-band-actions">
+              <Link href="/inventory" className="cta-band-btn-primary">Browse Inventory</Link>
+              <Link href="/contact" className="cta-band-btn-ghost">Contact Us</Link>
+            </div>
           </div>
         </div>
       </section>
+
+      <style>{`
+        .about-hero {
+          background: var(--color-navy);
+          padding: 5rem 0 4rem;
+          overflow: hidden;
+        }
+        .about-hero-inner {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 3rem;
+          align-items: center;
+        }
+        @media (min-width: 1024px) {
+          .about-hero-inner { grid-template-columns: 1fr 1fr; }
+        }
+        .about-h1 {
+          font-family: var(--font-sora), sans-serif;
+          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+          color: #fff;
+          margin: 0 0 1.25rem;
+        }
+        .about-hero-sub {
+          font-size: 1.05rem;
+          line-height: 1.65;
+          color: rgba(255,255,255,0.7);
+          max-width: 480px;
+          margin-bottom: 2rem;
+        }
+        .about-hero-stats-wrap {
+          border-radius: 12px;
+          overflow: hidden;
+          aspect-ratio: 4/3;
+          border: 1px solid rgba(255,255,255,0.1);
+          display: grid;
+        }
+        .about-hero-stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: 1fr 1fr;
+          gap: 0;
+          width: 100%;
+          height: 100%;
+        }
+        .about-stat-card {
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 1.75rem;
+        }
+        .about-stat-value {
+          font-family: var(--font-sora), sans-serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #E15A2C;
+          margin: 0 0 0.25rem;
+        }
+        .about-stat-label {
+          font-size: 0.8rem;
+          color: rgba(255,255,255,0.6);
+          margin: 0;
+          line-height: 1.4;
+        }
+        .about-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          background: #E15A2C;
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.75rem;
+          border-radius: 8px;
+          text-decoration: none;
+          transition: background 0.15s, transform 0.1s;
+        }
+        .about-btn-primary:hover { background: #C44A21; transform: translateY(-1px); }
+        .about-btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          background: transparent;
+          color: rgba(255,255,255,0.75);
+          font-weight: 600;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.5rem;
+          border-radius: 8px;
+          border: 1.5px solid rgba(255,255,255,0.2);
+          text-decoration: none;
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .about-btn-ghost:hover {
+          border-color: rgba(255,255,255,0.5);
+          color: #fff;
+          background: rgba(255,255,255,0.05);
+        }
+        .about-cta-section {
+          padding: 5rem 0;
+          background: var(--color-bg);
+        }
+        .cta-band {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 2rem;
+          flex-wrap: wrap;
+          background: var(--color-navy);
+          border-radius: 16px;
+          padding: 3rem;
+          position: relative;
+          overflow: hidden;
+        }
+        .cta-band::after {
+          content: "";
+          position: absolute;
+          bottom: -60px; right: -60px;
+          width: 240px;
+          height: 240px;
+          border-radius: 50%;
+          background: rgba(225, 90, 44, 0.07);
+          pointer-events: none;
+        }
+        .cta-band-copy { position: relative; }
+        .cta-band-eyebrow {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #E15A2C;
+          margin: 0 0 0.5rem;
+        }
+        .cta-band-heading {
+          font-family: var(--font-sora), sans-serif;
+          font-size: clamp(1.4rem, 3vw, 2rem);
+          font-weight: 700;
+          color: #fff;
+          margin: 0 0 0.4rem;
+          letter-spacing: -0.02em;
+        }
+        .cta-band-sub {
+          font-size: 0.9rem;
+          color: rgba(255,255,255,0.55);
+          margin: 0;
+        }
+        .cta-band-actions {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          position: relative;
+          flex-shrink: 0;
+        }
+        .cta-band-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          background: #E15A2C;
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.75rem;
+          border-radius: 8px;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: background 0.15s, transform 0.1s;
+        }
+        .cta-band-btn-primary:hover { background: #C44A21; transform: translateY(-1px); }
+        .cta-band-btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          background: transparent;
+          color: rgba(255,255,255,0.75);
+          font-weight: 600;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.5rem;
+          border-radius: 8px;
+          border: 1.5px solid rgba(255,255,255,0.2);
+          text-decoration: none;
+          white-space: nowrap;
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .cta-band-btn-ghost:hover {
+          border-color: rgba(255,255,255,0.5);
+          color: #fff;
+          background: rgba(255,255,255,0.05);
+        }
+      `}</style>
     </div>
   );
 }
