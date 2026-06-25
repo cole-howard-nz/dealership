@@ -34,7 +34,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   };
 
   return (
-    <div className="group relative bg-surface rounded-md border border-border overflow-hidden hover:shadow-lg transition-shadow duration-200">
+    <div className="group relative bg-surface rounded-xl border border-border overflow-hidden hover:-translate-y-0.5 transition-all duration-150" style={{ '--tw-shadow': 'var(--shadow-card-hover)' } as React.CSSProperties}>
       <Link
         href={isSold ? "#" : `/inventory/${vehicle.slug}`}
         onClick={(e) => isSold && e.preventDefault()}
@@ -75,7 +75,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <h3 className="font-heading text-lg font-semibold text-ink mt-1">
             {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.variant ?? ""}
           </h3>
-          <p className="text-xl font-bold text-ink mt-1">
+          <p className="font-heading text-xl font-bold text-ink mt-1">
             {formatPrice(vehicle.price)} {vehicle.priceNote && <span className="text-xs font-normal text-ink-muted">{vehicle.priceNote}</span>}
           </p>
           <dl className="flex items-center gap-4 mt-3 text-sm text-ink-muted">

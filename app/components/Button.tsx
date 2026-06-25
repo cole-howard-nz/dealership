@@ -10,17 +10,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-150 disabled:opacity-45 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2";
 
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-white hover:bg-accent-hover",
   secondary: "bg-transparent border-2 border-navy text-navy hover:bg-navy hover:text-white",
-  ghost: "bg-transparent text-navy hover:bg-border",
+  ghost: "bg-transparent text-ink hover:text-accent px-2 h-auto",
 };
 
 const sizes: Record<Size, string> = {
-  md: "px-6 py-3 text-base",
-  sm: "px-4 py-2 text-sm",
+  md: "h-12 px-6 text-base",
+  sm: "h-9 px-4 text-sm",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

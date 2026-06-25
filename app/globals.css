@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Colors */
   --color-bg: #FAFAF9;
   --color-surface: #FFFFFF;
   --color-ink: #13151A;
@@ -14,6 +15,49 @@
   --color-success: #1F9D55;
   --color-error: #D33A2C;
   --color-warning: #B8860B;
+
+  /* Typography — families */
+  --font-heading: var(--font-sora), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+
+  /* Typography — scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.5rem;
+  --text-4xl: 3.5rem;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 64px;
+  --space-8: 96px;
+  --space-9: 128px;
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Motion */
+  --transition-base: 150ms ease;
+  --transition-slow: 200ms ease;
+
+  /* Containers */
+  --container-reading: 720px;
+  --container-standard: 1280px;
+  --container-wide: 1440px;
+
+  /* Shadows */
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 * {

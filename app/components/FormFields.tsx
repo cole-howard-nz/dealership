@@ -34,7 +34,7 @@ function FieldShell({ label, error, required, hint, htmlFor, children }: FieldSh
 }
 
 const inputBase =
-  "w-full rounded-sm border bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-muted/70 focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full rounded-lg border bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-muted/70 focus:outline-none focus:ring-2 focus:ring-navy/40 h-12";
 
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;

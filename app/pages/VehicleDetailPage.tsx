@@ -179,7 +179,10 @@ export function VehicleDetailPage() {
             <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2"><Mail className="h-4 w-4" aria-hidden="true" /> Enquire about this vehicle</h2>
             <EnquiryForm vehicleId={vehicle.id} vehicleLabel={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} />
 
-            <Link to="/book-test-drive" className="mt-4 flex items-center justify-center gap-2 border-2 border-accent text-accent rounded-md py-2.5 text-sm font-semibold hover:bg-accent hover:text-white">
+            <Link
+              to="/book-test-drive"
+              className="mt-4 flex items-center justify-center gap-2 h-12 border-2 border-navy text-navy rounded-xl text-sm font-semibold transition-colors hover:bg-navy hover:text-white"
+            >
               <Calendar className="h-4 w-4" aria-hidden="true" /> Book Test Drive
             </Link>
             <Link to="/trade-in" className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold text-ink-muted hover:text-accent">

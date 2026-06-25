@@ -75,7 +75,7 @@ function InventoryContent() {
               </p>
               {activeChips.map((chip) => (
                 <button key={chip.key} onClick={() => removeChip(chip.key)}
-                  className="flex items-center gap-1 bg-border rounded-full px-3 py-1 text-xs font-medium hover:bg-ink-muted/20">
+                  className="inline-flex items-center gap-1 bg-navy text-white rounded-lg px-3 py-1 text-xs font-medium transition-opacity hover:opacity-80">
                   {chip.label} <X className="h-3 w-3" aria-hidden="true" />
                 </button>
               ))}
@@ -97,8 +97,9 @@ function InventoryContent() {
               <SearchX className="h-10 w-10 mx-auto text-ink-muted mb-3" aria-hidden="true" />
               <p className="font-semibold">No vehicles match those filters</p>
               <p className="text-sm text-ink-muted mt-1">Try widening your price or year range.</p>
-              <button onClick={() => setFilters(emptyFilters)} className="mt-4 text-accent font-semibold hover:underline">
-                Clear filters
+              <button onClick={() => setFilters(emptyFilters)}
+                className="mt-4 inline-flex items-center justify-center h-10 px-5 rounded-xl border-2 border-navy text-navy text-sm font-semibold transition-colors hover:bg-navy hover:text-white">
+                Clear all filters
               </button>
             </div>
           ) : (
@@ -109,7 +110,7 @@ function InventoryContent() {
               {visibleCount < filtered.length && (
                 <div className="text-center mt-8">
                   <button onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                    className="border-2 border-navy text-navy font-semibold rounded-md px-6 py-3 hover:bg-navy hover:text-white">
+                    className="inline-flex items-center justify-center h-12 px-6 rounded-xl border-2 border-navy text-navy font-semibold text-base transition-colors hover:bg-navy hover:text-white">
                     Load more vehicles
                   </button>
                 </div>

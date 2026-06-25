@@ -47,8 +47,10 @@ export function Header() {
             <Link
               key={link.to}
               href={link.to}
-              className={`text-sm font-medium hover:text-accent transition-colors ${
-                pathname === link.to ? "text-accent" : "text-white"
+              className={`text-sm font-medium transition-colors px-3 py-2 rounded-lg min-h-[44px] flex items-center hover:text-white hover:bg-white/10 ${
+                pathname === link.to
+                  ? "text-white bg-white/10 font-semibold"
+                  : "text-white/80"
               }`}
             >
               {link.label}

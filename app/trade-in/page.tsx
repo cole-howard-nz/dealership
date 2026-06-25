@@ -1,23 +1,24 @@
 import Link from "next/link";
+import { Calendar, Gauge, ClipboardCheck, CreditCard } from "lucide-react";
 
 const factors = [
   {
-    icon: "📅",
+    Icon: Calendar,
     title: "Year & make",
     body: "Newer cars and popular makes hold value better. JDM models with strong demand often surprise on the upside.",
   },
   {
-    icon: "🔢",
+    Icon: Gauge,
     title: "Odometer",
     body: "Lower isn't always better — a well-maintained 120,000km car can be worth more than a neglected 60,000km one.",
   },
   {
-    icon: "🔍",
+    Icon: ClipboardCheck,
     title: "Condition",
     body: "Interior, paint, tyre tread, and service records all factor in. We'll ask you for photos so we can be accurate.",
   },
   {
-    icon: "💳",
+    Icon: CreditCard,
     title: "Outstanding finance",
     body: "If there's money still owing on the car, we'll work that into the offer. It doesn't disqualify you.",
   },
@@ -73,8 +74,10 @@ export default function TradeInPage() {
       {/* ─── HOW IT WORKS ─────────────────────────────────────────── */}
       <section className="section-light">
         <div className="container-wide px-4">
-          <h2 className="section-heading">How it works</h2>
-          <p className="section-sub-text mb-10">Three steps, no runaround.</p>
+          <div className="mb-12">
+            <h2 className="section-heading text-center mb-2">How it works</h2>
+            <p className="section-sub-text text-center mx-auto">Three steps, no runaround.</p>
+          </div>
           <div className="steps-grid">
             {howItWorks.map((step) => (
               <div key={step.num} className="step-card">
@@ -90,16 +93,20 @@ export default function TradeInPage() {
       {/* ─── WHAT AFFECTS VALUE ───────────────────────────────────── */}
       <section className="section-dark">
         <div className="container-wide px-4">
-          <h2 className="section-heading-light">What affects your estimate</h2>
-          <p className="section-sub-light mb-10">
-            We look at four main things. The more detail you give us, the more accurate we can be.
-          </p>
+          <div className="mb-12">
+            <h2 className="section-heading-light">What affects your estimate</h2>
+            <p className="section-sub-light">
+              We look at four main things. The more detail you give us, the more accurate we can be.
+            </p>
+          </div>
           <div className="factors-grid">
-            {factors.map((f) => (
-              <div key={f.title} className="factor-card">
-                <span className="factor-icon">{f.icon}</span>
-                <h3 className="factor-title">{f.title}</h3>
-                <p className="factor-body">{f.body}</p>
+            {factors.map(({ Icon, title, body }) => (
+              <div key={title} className="factor-card">
+                <div className="factor-icon-wrap">
+                  <Icon size={20} aria-hidden="true" className="factor-icon-svg" />
+                </div>
+                <h3 className="factor-title">{title}</h3>
+                <p className="factor-body">{body}</p>
               </div>
             ))}
           </div>
@@ -108,20 +115,21 @@ export default function TradeInPage() {
 
       {/* ─── BOTTOM CTA ───────────────────────────────────────────── */}
       <section className="tradein-cta-section">
-        <div className="container-wide px-4 tradein-cta-inner">
-          <div>
-            <h2 className="tradein-cta-heading">Ready to find out?</h2>
-            <p className="tradein-cta-sub">
-              Takes about 2 minutes. No obligation, no pressure, valid for 7 days.
-            </p>
-          </div>
-          <div className="tradein-cta-btns">
-            <Link href="/trade-in/submit" className="tradein-btn-primary-lg">
-              Get my trade-in value
-            </Link>
-            <Link href="/inventory" className="tradein-btn-ghost-lg">
-              Browse replacement cars
-            </Link>
+        <div className="container-wide px-4">
+          <div className="cta-band">
+            <div className="cta-band-copy">
+              <p className="cta-band-eyebrow">No obligation</p>
+              <h2 className="cta-band-heading">Ready to find out?</h2>
+              <p className="cta-band-sub">Takes about 2 minutes. Price held for 7 days.</p>
+            </div>
+            <div className="cta-band-actions">
+              <Link href="/trade-in/submit" className="cta-band-btn-primary">
+                Get my trade-in value
+              </Link>
+              <Link href="/inventory" className="cta-band-btn-ghost">
+                Browse replacement cars
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -272,11 +280,23 @@ export default function TradeInPage() {
         @media (min-width: 1024px) { .factors-grid { grid-template-columns: repeat(4, 1fr); } }
         .factor-card {
           padding: 1.75rem;
-          background: rgba(255,255,255,0.05);
+          background: rgba(255,255,255,0.04);
           border: 1.5px solid rgba(255,255,255,0.1);
           border-radius: 12px;
+          transition: background 0.15s;
         }
-        .factor-icon { font-size: 1.75rem; display: block; margin-bottom: 0.75rem; }
+        .factor-card:hover { background: rgba(255,255,255,0.07); }
+        .factor-icon-wrap {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          background: rgba(225, 90, 44, 0.15);
+          margin-bottom: 1rem;
+        }
+        .factor-icon-svg { color: #E15A2C; }
         .factor-title {
           font-family: var(--font-sora), sans-serif;
           font-size: 0.95rem;
@@ -291,69 +311,95 @@ export default function TradeInPage() {
           margin: 0;
         }
 
-        /* ─── CTA SECTION ───────────────────────────────────────── */
+        /* ─── CTA BAND ──────────────────────────────────────────── */
         .tradein-cta-section {
           padding: 5rem 0;
           background: var(--color-bg);
           border-top: 1px solid var(--color-border);
         }
-        .tradein-cta-inner {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 2rem;
+        .cta-band {
+          display: flex;
           align-items: center;
+          justify-content: space-between;
+          gap: 2rem;
+          flex-wrap: wrap;
+          background: var(--color-navy);
+          border-radius: 16px;
+          padding: 3rem;
+          position: relative;
+          overflow: hidden;
         }
-        @media (min-width: 1024px) {
-          .tradein-cta-inner { grid-template-columns: 1fr auto; }
+        .cta-band::after {
+          content: "";
+          position: absolute;
+          bottom: -60px; right: -60px;
+          width: 240px;
+          height: 240px;
+          border-radius: 50%;
+          background: rgba(225, 90, 44, 0.07);
+          pointer-events: none;
         }
-        .tradein-cta-heading {
+        .cta-band-copy { position: relative; }
+        .cta-band-eyebrow {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #E15A2C;
+          margin: 0 0 0.5rem;
+        }
+        .cta-band-heading {
           font-family: var(--font-sora), sans-serif;
           font-size: clamp(1.4rem, 3vw, 2rem);
           font-weight: 700;
-          color: var(--color-ink);
+          color: #fff;
           margin: 0 0 0.4rem;
+          letter-spacing: -0.02em;
         }
-        .tradein-cta-sub {
+        .cta-band-sub {
           font-size: 0.9rem;
-          color: var(--color-ink-muted);
+          color: rgba(255,255,255,0.55);
           margin: 0;
         }
-        .tradein-cta-btns {
+        .cta-band-actions {
           display: flex;
           gap: 1rem;
           flex-wrap: wrap;
+          position: relative;
+          flex-shrink: 0;
         }
-        .tradein-btn-primary-lg {
+        .cta-band-btn-primary {
           display: inline-flex;
           align-items: center;
           background: #E15A2C;
           color: #fff;
           font-weight: 700;
-          font-size: 1rem;
-          padding: 1rem 2rem;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.75rem;
           border-radius: 8px;
           text-decoration: none;
           white-space: nowrap;
           transition: background 0.15s, transform 0.1s;
         }
-        .tradein-btn-primary-lg:hover { background: #C44A21; transform: translateY(-1px); }
-        .tradein-btn-ghost-lg {
+        .cta-band-btn-primary:hover { background: #C44A21; transform: translateY(-1px); }
+        .cta-band-btn-ghost {
           display: inline-flex;
           align-items: center;
           background: transparent;
-          color: var(--color-ink);
+          color: rgba(255,255,255,0.75);
           font-weight: 600;
-          font-size: 1rem;
-          padding: 1rem 2rem;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.5rem;
           border-radius: 8px;
-          border: 1.5px solid var(--color-border);
+          border: 1.5px solid rgba(255,255,255,0.2);
           text-decoration: none;
           white-space: nowrap;
-          transition: border-color 0.15s, color 0.15s;
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
         }
-        .tradein-btn-ghost-lg:hover {
-          border-color: #E15A2C;
-          color: #E15A2C;
+        .cta-band-btn-ghost:hover {
+          border-color: rgba(255,255,255,0.5);
+          color: #fff;
+          background: rgba(255,255,255,0.05);
         }
       `}</style>
     </div>

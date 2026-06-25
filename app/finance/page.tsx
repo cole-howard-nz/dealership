@@ -44,21 +44,30 @@ export default function FinancePage() {
 
       {/* ─── HERO ─────────────────────────────────────────────────── */}
       <section className="finance-hero">
-        <div className="container-wide px-4 finance-hero-content">
-          <div className="eyebrow-accent">Finance</div>
-          <h1 className="finance-h1">
-            Know your number<br />before you turn up.
-          </h1>
-          <p className="finance-hero-sub">
-            Pre-approval in minutes. Transparent rate, fees, and total cost upfront — not handed to you at signing. Apply online. No phone call required to get started.
-          </p>
-          <div className="finance-hero-ctas">
-            <Link href="/finance/apply" className="finance-btn-primary">
-              Apply for Finance
-            </Link>
-            <Link href="/inventory" className="finance-btn-ghost">
-              Browse cars first
-            </Link>
+        <div className="finance-hero-inner container-wide px-4">
+          <div className="finance-hero-copy">
+            <div className="eyebrow-accent">Finance</div>
+            <h1 className="finance-h1">
+              Know your number<br />before you turn up.
+            </h1>
+            <p className="finance-hero-sub">
+              Pre-approval in minutes. Transparent rate, fees, and total cost upfront — not handed to you at signing. Apply online. No phone call required to get started.
+            </p>
+            <div className="finance-hero-ctas">
+              <Link href="/finance/apply" className="finance-btn-primary">
+                Apply for Finance
+              </Link>
+              <Link href="/inventory" className="finance-btn-ghost">
+                Browse cars first
+              </Link>
+            </div>
+          </div>
+          <div className="finance-hero-img-wrap">
+            <img
+              src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=640&fit=crop&q=85"
+              alt="Car finance paperwork and keys on a desk"
+              className="finance-hero-img"
+            />
           </div>
         </div>
       </section>
@@ -89,10 +98,12 @@ export default function FinancePage() {
       {/* ─── HOW IT WORKS ─────────────────────────────────────────── */}
       <section className="steps-section">
         <div className="container-wide px-4">
-          <h2 className="section-heading text-center mb-2">How it works</h2>
-          <p className="section-sub-text text-center mb-12 max-w-lg mx-auto">
-            Three steps, no runaround.
-          </p>
+          <div className="mb-12">
+            <h2 className="section-heading text-center mb-2">How it works</h2>
+            <p className="section-sub-text text-center mb-12 mx-auto">
+              Three steps, no runaround.
+            </p>
+          </div>
           <div className="steps-grid">
             {steps.map((step) => (
               <div key={step.num} className="step-card">
@@ -121,15 +132,20 @@ export default function FinancePage() {
       </section>
 
       {/* ─── CTA STRIP ────────────────────────────────────────────── */}
-      <section className="finance-cta-strip">
-        <div className="container-wide px-4 finance-cta-inner">
-          <div>
-            <h2 className="finance-cta-heading">Ready to get pre-approved?</h2>
-            <p className="finance-cta-sub">Takes 5 minutes. Soft credit check only until you proceed.</p>
+      <section className="finance-cta-section">
+        <div className="container-wide px-4">
+          <div className="cta-band">
+            <div className="cta-band-copy">
+              <p className="cta-band-eyebrow">Soft check only</p>
+              <h2 className="cta-band-heading">Ready to get pre-approved?</h2>
+              <p className="cta-band-sub">Takes 5 minutes. No hard credit check until you proceed.</p>
+            </div>
+            <div className="cta-band-actions">
+              <Link href="/finance/apply" className="cta-band-btn-primary">
+                Start my application
+              </Link>
+            </div>
           </div>
-          <Link href="/finance/apply" className="finance-btn-primary-lg">
-            Start my application
-          </Link>
         </div>
       </section>
 
@@ -140,8 +156,29 @@ export default function FinancePage() {
         .finance-hero {
           background: var(--color-navy);
           padding: 5rem 0 4rem;
+          overflow: hidden;
         }
-        .finance-hero-content { max-width: 680px; }
+        .finance-hero-inner {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 3rem;
+          align-items: center;
+        }
+        @media (min-width: 1024px) {
+          .finance-hero-inner { grid-template-columns: 1fr 1fr; }
+        }
+        .finance-hero-img-wrap {
+          border-radius: 12px;
+          overflow: hidden;
+          aspect-ratio: 4/3;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+        .finance-hero-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
         .eyebrow-accent {
           font-size: 0.72rem;
           font-weight: 700;
@@ -190,6 +227,8 @@ export default function FinancePage() {
           border: 1.5px solid rgba(255,255,255,0.25);
           text-decoration: none;
           transition: background 0.15s, border-color 0.15s;
+          display: inline-flex;
+          align-items: center;
         }
         .finance-btn-ghost:hover {
           background: rgba(255,255,255,0.07);
@@ -254,7 +293,6 @@ export default function FinancePage() {
           border: 1.5px solid var(--color-border);
           border-radius: 12px;
           padding: 2rem;
-          position: relative;
         }
         .step-num {
           font-family: var(--font-sora), sans-serif;
@@ -312,45 +350,77 @@ export default function FinancePage() {
           margin: 0;
         }
 
-        /* ─── CTA STRIP ─────────────────────────────────────────── */
-        .finance-cta-strip {
-          background: var(--color-navy);
-          padding: 4rem 0;
+        /* ─── CTA BAND ──────────────────────────────────────────── */
+        .finance-cta-section {
+          padding: 5rem 0;
+          background: var(--color-bg);
+          border-top: 1px solid var(--color-border);
         }
-        .finance-cta-inner {
+        .cta-band {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 2rem;
           flex-wrap: wrap;
+          background: var(--color-navy);
+          border-radius: 16px;
+          padding: 3rem;
+          position: relative;
+          overflow: hidden;
         }
-        .finance-cta-heading {
+        .cta-band::after {
+          content: "";
+          position: absolute;
+          bottom: -60px; right: -60px;
+          width: 240px;
+          height: 240px;
+          border-radius: 50%;
+          background: rgba(225, 90, 44, 0.07);
+          pointer-events: none;
+        }
+        .cta-band-copy { position: relative; }
+        .cta-band-eyebrow {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #E15A2C;
+          margin: 0 0 0.5rem;
+        }
+        .cta-band-heading {
           font-family: var(--font-sora), sans-serif;
-          font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+          font-size: clamp(1.4rem, 3vw, 2rem);
           font-weight: 700;
           color: #fff;
           margin: 0 0 0.4rem;
+          letter-spacing: -0.02em;
         }
-        .finance-cta-sub {
+        .cta-band-sub {
           font-size: 0.9rem;
-          color: rgba(255,255,255,0.6);
+          color: rgba(255,255,255,0.55);
           margin: 0;
         }
-        .finance-btn-primary-lg {
+        .cta-band-actions {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          position: relative;
+          flex-shrink: 0;
+        }
+        .cta-band-btn-primary {
+          display: inline-flex;
+          align-items: center;
           background: #E15A2C;
           color: #fff;
           font-weight: 700;
-          font-size: 1rem;
-          padding: 1rem 2rem;
+          font-size: 0.95rem;
+          padding: 0.875rem 1.75rem;
           border-radius: 8px;
           text-decoration: none;
           white-space: nowrap;
           transition: background 0.15s, transform 0.1s;
-          display: inline-flex;
-          align-items: center;
-          flex-shrink: 0;
         }
-        .finance-btn-primary-lg:hover { background: #C44A21; transform: translateY(-1px); }
+        .cta-band-btn-primary:hover { background: #C44A21; transform: translateY(-1px); }
       `}</style>
     </div>
   );

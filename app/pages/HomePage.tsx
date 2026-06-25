@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link'
+import { Zap, Car, Bus, Truck, ShieldCheck, CreditCard } from "lucide-react";
 import { vehicles } from "../data/vehicles";
 import { VehicleCard } from "../components/VehicleCard";
 import { FinanceCalculator } from "../components/FinanceCalculator";
@@ -9,28 +10,28 @@ const jdmFeatured = vehicles.filter((v) => v.status === "Available" && v.bodyTyp
 const allFeatured = vehicles.filter((v) => v.status === "Available").slice(0, 6);
 
 const categories = [
-  { label: "JDM & Performance", type: "Performance", emoji: "🏎️", desc: "Import legends & track cars" },
-  { label: "SUVs", type: "SUV", emoji: "🚙", desc: "Family-ready, road-ready" },
-  { label: "Hatchbacks", type: "Hatchback", emoji: "🚗", desc: "Practical & fun" },
-  { label: "Utes", type: "Ute", emoji: "🛻", desc: "Work hard, tow harder" },
-  { label: "Vans", type: "Van", emoji: "🚐", desc: "Move the whole crew" },
+  { label: "JDM & Performance", type: "Performance", Icon: Zap, desc: "Import legends & track cars" },
+  { label: "SUVs", type: "SUV", Icon: Car, desc: "Family-ready, road-ready" },
+  { label: "Hatchbacks", type: "Hatchback", Icon: Car, desc: "Practical & fun" },
+  { label: "Utes", type: "Ute", Icon: Truck, desc: "Work hard, tow harder" },
+  { label: "Vans", type: "Van", Icon: Bus, desc: "Move the whole crew" },
 ];
 
 const trustPoints = [
   {
     title: "Inspected before it's listed",
     body: "Every car gets a full independent inspection before we put a price on it. The report is yours to read — no charge, no conditions.",
-    icon: "🔍",
+    Icon: ShieldCheck,
   },
   {
     title: "Pre-approval in minutes",
     body: "Know what you'll actually pay before you make the trip. Our finance calculator is honest — not a hook to get you through the door.",
-    icon: "⚡",
+    Icon: CreditCard,
   },
   {
     title: "Delivered to your driveway",
     body: "Can't make it in? We deliver anywhere in NZ. Plenty of our buyers have never set foot in our yard, and they're happy about it.",
-    icon: "🚚",
+    Icon: Truck,
   },
 ];
 
@@ -49,10 +50,6 @@ export function HomePage() {
         </div>
 
         <div className="hero-content container-wide px-4">
-          <div className="hero-badge">
-            <span className="hero-badge-dot" />
-            JDM imports &amp; quality used vehicles
-          </div>
           <h1 className="hero-heading">
             Every car checked.<br />
             <span className="hero-heading-accent">No surprises.</span>
@@ -80,7 +77,7 @@ export function HomePage() {
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
-              <span className="hero-stat-num">NZ-wide</span>
+              <span className="hero-stat-num">NZ Wide</span>
               <span className="hero-stat-label">Delivery</span>
             </div>
           </div>
@@ -97,13 +94,13 @@ export function HomePage() {
           <Link href="/inventory" className="browse-link">All cars →</Link>
         </div>
         <div className="category-grid">
-          {categories.map(({ label, type, emoji, desc }) => (
+          {categories.map(({ label, type, Icon, desc }) => (
             <Link
               key={type}
               href={`/inventory?bodyType=${type}`}
               className="category-card"
             >
-              <span className="category-emoji">{emoji}</span>
+              <Icon size={28} aria-hidden="true" className="category-icon" />
               <span className="category-label">{label}</span>
               <span className="category-desc">{desc}</span>
             </Link>
@@ -152,16 +149,18 @@ export function HomePage() {
       {/* ─── WHY US ───────────────────────────────────────────────────────── */}
       <section className="why-section">
         <div className="container-wide px-4">
-          <h2 className="section-title text-center mb-3">Why buy from us</h2>
-          <p className="section-sub text-center max-w-xl mx-auto mb-12">
-            We're not the biggest dealer in NZ. We're the one where nothing is hidden in the footnotes.
-          </p>
+          <div className='text-center mb-12'>
+            <h2 className="section-title text-center mb-3">Why buy from us</h2>
+            <p className="section-sub mx-auto">
+              We're not the biggest dealer in NZ. We're the one where nothing is hidden in the footnotes.
+            </p>
+          </div>
           <div className="trust-grid">
-            {trustPoints.map((pt) => (
-              <div key={pt.title} className="trust-card">
-                <span className="trust-icon">{pt.icon}</span>
-                <h3 className="trust-title">{pt.title}</h3>
-                <p className="trust-body">{pt.body}</p>
+            {trustPoints.map(({ title, body, Icon }) => (
+              <div key={title} className="trust-card">
+                <Icon size={28} aria-hidden="true" className="trust-icon-svg" />
+                <h3 className="trust-title">{title}</h3>
+                <p className="trust-body">{body}</p>
               </div>
             ))}
           </div>
@@ -228,9 +227,10 @@ export function HomePage() {
           position: relative;
           min-height: 88vh;
           display: flex;
-          align-items: flex-end;
-          padding-bottom: 5rem;
+          align-items: center;
+          padding-bottom: 0px;
           overflow: hidden;
+          min-height: 100vh;
         }
         .hero-bg {
           position: absolute;
@@ -277,7 +277,7 @@ export function HomePage() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #E15A2C;
+          background: var(--color-accent);
           flex-shrink: 0;
           animation: pulse 2s infinite;
         }
@@ -295,7 +295,7 @@ export function HomePage() {
           margin: 0 0 1.25rem;
         }
         .hero-heading-accent {
-          color: #E15A2C;
+          color: var(--color-accent);
         }
         .hero-sub {
           font-size: 1.1rem;
@@ -311,27 +311,31 @@ export function HomePage() {
           margin-bottom: 3rem;
         }
         .btn-primary-hero {
-          background: #E15A2C;
+          background: var(--color-accent);
           color: #fff;
           font-weight: 700;
           font-size: 0.95rem;
-          padding: 0.875rem 1.75rem;
-          border-radius: 8px;
+          height: 48px;
+          padding: 0 1.75rem;
+          border-radius: var(--radius-md);
           text-decoration: none;
-          transition: background 0.15s ease, transform 0.1s ease;
+          transition: background var(--transition-base), transform 0.1s ease;
           display: inline-flex;
           align-items: center;
         }
-        .btn-primary-hero:hover { background: #C44A21; transform: translateY(-1px); }
+        .btn-primary-hero:hover { background: var(--color-accent-hover); transform: translateY(-1px); }
         .btn-ghost-hero {
           color: rgba(255,255,255,0.85);
           font-weight: 600;
           font-size: 0.95rem;
-          padding: 0.875rem 1.5rem;
-          border-radius: 8px;
+          height: 48px;
+          padding: 0 1.5rem;
+          border-radius: var(--radius-md);
           border: 1.5px solid rgba(255,255,255,0.3);
           text-decoration: none;
-          transition: background 0.15s ease, border-color 0.15s;
+          transition: background var(--transition-base), border-color var(--transition-base);
+          display: inline-flex;
+          align-items: center;
         }
         .btn-ghost-hero:hover {
           background: rgba(255,255,255,0.08);
@@ -410,7 +414,7 @@ export function HomePage() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #E15A2C;
+          color: var(--color-accent);
           margin-bottom: 0.5rem;
         }
         .eyebrow-dark {
@@ -418,13 +422,13 @@ export function HomePage() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #E15A2C;
+          color: var(--color-accent);
           margin-bottom: 0.5rem;
         }
         .browse-link {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #E15A2C;
+          color: var(--color-accent);
           text-decoration: none;
           white-space: nowrap;
           flex-shrink: 0;
@@ -442,7 +446,7 @@ export function HomePage() {
         .inline-link {
           font-size: 0.9rem;
           font-weight: 600;
-          color: #E15A2C;
+          color: var(--color-accent);
           text-decoration: none;
         }
         .inline-link:hover { text-decoration: underline; }
@@ -450,30 +454,34 @@ export function HomePage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border: 1.5px solid var(--color-border);
+          height: 48px;
+          border: 2px solid var(--color-border);
           color: var(--color-ink);
           font-weight: 600;
           font-size: 0.9rem;
-          padding: 0.75rem 2rem;
-          border-radius: 8px;
+          padding: 0 2rem;
+          border-radius: var(--radius-md);
           text-decoration: none;
-          transition: border-color 0.15s, background 0.15s;
+          transition: border-color var(--transition-base), color var(--transition-base);
         }
         .btn-outline-full:hover {
-          border-color: #E15A2C;
-          color: #E15A2C;
+          border-color: var(--color-accent);
+          color: var(--color-accent);
         }
         .btn-primary-dark {
-          background: #E15A2C;
+          background: var(--color-accent);
           color: #fff;
           font-weight: 700;
           font-size: 0.95rem;
-          padding: 0.875rem 1.75rem;
-          border-radius: 8px;
+          height: 48px;
+          padding: 0 1.75rem;
+          border-radius: var(--radius-md);
           text-decoration: none;
-          transition: background 0.15s ease;
+          transition: background var(--transition-base);
+          display: inline-flex;
+          align-items: center;
         }
-        .btn-primary-dark:hover { background: #C44A21; }
+        .btn-primary-dark:hover { background: var(--color-accent-hover); }
 
         /* ─── CATEGORIES ────────────────────────────────────────────── */
         .category-grid {
@@ -492,19 +500,19 @@ export function HomePage() {
           flex-direction: column;
           align-items: flex-start;
           gap: 6px;
-          background: #fff;
-          border: 1.5px solid var(--color-border);
-          border-radius: 12px;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
           padding: 1.25rem 1rem;
           text-decoration: none;
-          transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+          transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
         }
         .category-card:hover {
-          border-color: #E15A2C;
-          box-shadow: 0 4px 16px rgba(225,90,44,0.1);
+          border-color: var(--color-accent);
+          box-shadow: var(--shadow-card-hover);
           transform: translateY(-2px);
         }
-        .category-emoji { font-size: 1.75rem; line-height: 1; }
+        .category-icon { color: var(--color-navy); margin-bottom: 2px; }
         .category-label {
           font-family: var(--font-sora), sans-serif;
           font-size: 0.9rem;
@@ -545,11 +553,11 @@ export function HomePage() {
         }
         .trust-card {
           padding: 2rem;
-          border: 1.5px solid var(--color-border);
-          border-radius: 12px;
-          background: var(--color-bg);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          background: var(--color-surface);
         }
-        .trust-icon { font-size: 2rem; display: block; margin-bottom: 1rem; }
+        .trust-icon-svg { color: var(--color-navy); display: block; margin-bottom: 1rem; }
         .trust-title {
           font-family: var(--font-sora), sans-serif;
           font-size: 1.05rem;
@@ -621,7 +629,7 @@ export function HomePage() {
           content: "✓";
           position: absolute;
           left: 0;
-          color: #E15A2C;
+          color: var(--color-accent);
           font-weight: 700;
         }
       `}</style>

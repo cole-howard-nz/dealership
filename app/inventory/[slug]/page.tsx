@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronLeft, ChevronRight, Expand, X, Heart, GitCompare, Gauge, Fuel,
   Calendar, Settings2, ShieldCheck, Mail, Repeat, Phone,
+  CheckCircle2,
 } from "lucide-react";
 import { getVehicleBySlug, getSimilarVehicles } from "../../data/vehicles";
 import { formatPrice, formatOdometer } from "../../lib/format";
@@ -130,7 +131,7 @@ export default function VehicleDetailPage({ params }: { params: { slug: string }
             <div className="text-right">
               <p className="text-3xl font-bold">{formatPrice(vehicle.price)}</p>
               {vehicle.priceNote && <p className="text-sm text-ink-muted">{vehicle.priceNote}</p>}
-              <p className="text-sm text-success font-medium mt-1">✓ Delivered anywhere in NZ</p>
+              <p className="text-sm text-success font-medium mt-1 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Delivered anywhere in NZ</p>
             </div>
           </div>
 
