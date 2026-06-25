@@ -36,7 +36,7 @@ interface SelectProps {
   placeholder: string;
 }
 
-function CustomSelect({ id, value, onChange, options, placeholder }: SelectProps) {
+export function CustomSelect({ id, value, onChange, options, placeholder }: SelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

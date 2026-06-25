@@ -45,7 +45,11 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           {cover && <img src={cover.url} alt={cover.alt} className={`h-full w-full object-cover ${isSold ? "opacity-50" : ""}`} loading="lazy" />}
           <div className="absolute top-3 left-3 flex gap-2">
             {isSold && <Badge tone="navy">Sold</Badge>}
-            {isIncoming && <Badge tone="warning">Coming Soon</Badge>}
+            {isIncoming && (
+              <span className="inline-flex items-center gap-1.5 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm tracking-wide uppercase">
+                Coming Soon
+              </span>
+            )}
             {vehicle.status === "Reserved" && <Badge tone="warning">Reserved</Badge>}
           </div>
           <div className="absolute top-3 right-3 flex gap-2">

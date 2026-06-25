@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowUpDown, SearchX, X } from "lucide-react";
 import { vehicles } from "../data/vehicles";
 import { VehicleCard } from "../components/VehicleCard";
-import { FilterBar, emptyFilters, InventoryFilters } from "../components/FilterBar";
+import { FilterBar, emptyFilters, InventoryFilters, CustomSelect} from "../components/FilterBar";
 
 const PAGE_SIZE = 9;
 
@@ -80,16 +80,22 @@ function InventoryContent() {
                 </button>
               ))}
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
-              <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}
-                className="rounded-sm border border-border px-2 py-1.5 text-sm">
-                <option value="year-desc">Newest first</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="odometer-asc">Odometer: Low to High</option>
-              </select>
-            </label>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-ink-muted shrink-0" aria-hidden="true" />
+              <div style={{ width: "200px" }}>
+                <CustomSelect
+                  value={sort}
+                  onChange={(val: string) => setSort(val as typeof sort)}
+                  options={[
+                    { value: "year-desc", label: "Newest first" },
+                    { value: "price-asc", label: "Price: Low to High" },
+                    { value: "price-desc", label: "Price: High to Low" },
+                    { value: "odometer-asc", label: "Odometer: Low to High" },
+                  ]}
+                  placeholder="Sort by"
+                />
+              </div>
+            </div>
           </div>
 
           {filtered.length === 0 ? (

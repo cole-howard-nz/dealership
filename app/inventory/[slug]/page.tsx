@@ -178,7 +178,7 @@ export default function VehicleDetailPage({ params }: { params: { slug: string }
           {/* Full spec table */}
           <div className="mt-8">
             <h2 className="font-heading font-semibold text-xl mb-4">Full specification</h2>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm border border-border rounded-xl p-5 bg-surface">
+            <dl className="divide-y divide-border border border-border rounded-xl overflow-hidden bg-surface text-sm">
               {(
                 [
                   ["Make", vehicle.make],
@@ -194,28 +194,12 @@ export default function VehicleDetailPage({ params }: { params: { slug: string }
                   ["Import status", vehicle.importStatus],
                 ] as [string, string | number][]
               ).map(([label, value]) => (
-                <div key={label} className="flex justify-between border-b border-border/60 pb-2">
-                  <dt className="text-ink-muted">{label}</dt>
-                  <dd className="font-medium">{value}</dd>
+                <div key={label} className="flex items-center justify-between px-5 py-3">
+                  <dt className="text-ink-muted w-1/3">{label}</dt>
+                  <dd className="font-medium text-right">{value}</dd>
                 </div>
               ))}
             </dl>
-            {vehicle.features.length > 0 && (
-              <>
-                <h3 className="font-heading font-semibold mt-6 mb-3">Features & options</h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  {vehicle.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {vehicle.description && (
-              <p className="text-sm text-ink-muted mt-6 leading-relaxed">{vehicle.description}</p>
-            )}
           </div>
 
           {/* Finance estimate */}
