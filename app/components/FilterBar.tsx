@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, X, Search } from "lucide-react";
 import type { BodyType, Transmission, FuelType } from "../types";
 import { vehicles } from "../data/vehicles";
 
 export interface InventoryFilters {
+  search: string;
   bodyType: BodyType | "";
   make: string;
   minPrice: string;
@@ -15,12 +16,42 @@ export interface InventoryFilters {
 }
 
 export const emptyFilters: InventoryFilters = {
-  bodyType: "", make: "", minPrice: "", maxPrice: "", minYear: "", maxYear: "", transmission: "", fuelType: "",
+  search: "",
+  bodyType: "",
+  make: "",
+  minPrice: "",
+  maxPrice: "",
+  minYear: "",
+  maxYear: "",
+  transmission: "",
+  fuelType: "",
 };
 
 const bodyTypes: BodyType[] = ["Sedan", "Hatchback", "SUV", "Ute", "Van", "Performance"];
 const transmissions: Transmission[] = ["Automatic", "Manual", "CVT"];
 const fuelTypes: FuelType[] = ["Petrol", "Diesel", "Hybrid", "PHEV", "EV"];
+
+/**
+ * Returns true if the vehicle matches a free-text search string.
+ * Searches across make, model, variant, transmission, fuelType, colour, location, bodyType.
+ */
+export function vehicleMatchesSearch(vehicle: Parameters<typeof vehicles[0]["make"]["toLowerCase"]> extends never ? any : (typeof vehicles)[0], query: string): boolean {
+  if (!query.trim()) return true;
+  const q = query.toLowerCase();
+  const fields = [
+    vehicle.make,
+    vehicle.model,
+    vehicle.variant ?? "",
+    vehicle.transmission,
+    vehicle.fuelType,
+    vehicle.colour,
+    vehicle.location,
+    vehicle.bodyType,
+    String(vehicle.year),
+    vehicle.driveType ?? "",
+  ];
+  return fields.some((f) => String(f).toLowerCase().includes(q));
+}
 
 interface Props {
   filters: InventoryFilters;
@@ -192,6 +223,99 @@ export function CustomSelect({ id, value, onChange, options, placeholder }: Sele
   );
 }
 
+// ─── SearchBar ────────────────────────────────────────────────────────────────
+interface SearchBarProps {
+  value: string;
+  onChange: (val: string) => void;
+}
+
+function SearchBar({ value, onChange }: SearchBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="search-bar-wrap">
+      <Search className="search-icon" size={15} aria-hidden="true" />
+      <input
+        ref={inputRef}
+        type="search"
+        aria-label="Search vehicles"
+        placeholder="Search make, model, fuel…"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="search-input"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      {value && (
+        <button
+          type="button"
+          aria-label="Clear search"
+          onClick={() => { onChange(""); inputRef.current?.focus(); }}
+          className="search-clear"
+        >
+          <X size={13} />
+        </button>
+      )}
+      <style>{`
+        .search-bar-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 100%;
+        }
+        .search-icon {
+          position: absolute;
+          left: 10px;
+          color: var(--color-ink-muted);
+          pointer-events: none;
+          flex-shrink: 0;
+        }
+        .search-input {
+          width: 100%;
+          background: #fff;
+          border: 1.5px solid var(--color-border);
+          border-radius: var(--radius-md);
+          padding: 9px 32px 9px 32px;
+          font-size: 0.875rem;
+          color: var(--color-ink);
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+          /* remove browser default search cancel button */
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .search-input::-webkit-search-cancel-button { display: none; }
+        .search-input::placeholder { color: var(--color-ink-muted); }
+        .search-input:hover { border-color: var(--color-navy); }
+        .search-input:focus {
+          border-color: var(--color-accent);
+          box-shadow: 0 0 0 3px rgba(220, 100, 30, 0.12);
+          outline: none;
+        }
+        .search-clear {
+          position: absolute;
+          right: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: var(--color-border);
+          color: var(--color-ink-muted);
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+          border: none;
+          padding: 0;
+        }
+        .search-clear:hover {
+          background: var(--color-ink-muted);
+          color: #fff;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // ─── FilterBar ────────────────────────────────────────────────────────────────
 export function FilterBar({ filters, onChange }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -208,6 +332,17 @@ export function FilterBar({ filters, onChange }: Props) {
 
   const content = (
     <div className="flex flex-col gap-5">
+      {/* ── Search ── */}
+      <div>
+        <label className="filter-label" htmlFor="f-search">Search</label>
+        <SearchBar
+          value={filters.search}
+          onChange={(val) => set({ search: val })}
+        />
+      </div>
+
+      <div className="filter-divider" />
+
       <div>
         <label className="filter-label" htmlFor="f-bodytype">Body type</label>
         <CustomSelect
@@ -295,6 +430,11 @@ export function FilterBar({ filters, onChange }: Props) {
           text-transform: uppercase;
           color: var(--color-ink-muted);
           margin-bottom: 6px;
+        }
+        .filter-divider {
+          height: 1px;
+          background: var(--color-border);
+          margin: -4px 0;
         }
       `}</style>
     </div>

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowUpDown, SearchX, X } from "lucide-react";
 import { vehicles } from "../data/vehicles";
 import { VehicleCard } from "../components/VehicleCard";
-import { FilterBar, emptyFilters, InventoryFilters, CustomSelect} from "../components/FilterBar";
+import { FilterBar, emptyFilters, InventoryFilters, CustomSelect, vehicleMatchesSearch } from "../components/FilterBar";
 
 const PAGE_SIZE = 9;
 
@@ -20,6 +20,7 @@ function InventoryContent() {
 
   const filtered = useMemo(() => {
     let result = vehicles.filter((v) => {
+      if (!vehicleMatchesSearch(v, filters.search)) return false;
       if (filters.bodyType && v.bodyType !== filters.bodyType) return false;
       if (filters.make && v.make !== filters.make) return false;
       if (filters.minPrice && v.price < Number(filters.minPrice)) return false;
@@ -43,6 +44,7 @@ function InventoryContent() {
   const visible = filtered.slice(0, visibleCount);
 
   const activeChips: { key: keyof InventoryFilters; label: string }[] = [];
+  if (filters.search) activeChips.push({ key: "search", label: `"${filters.search}"` });
   if (filters.bodyType) activeChips.push({ key: "bodyType", label: filters.bodyType });
   if (filters.make) activeChips.push({ key: "make", label: filters.make });
   if (filters.transmission) activeChips.push({ key: "transmission", label: filters.transmission });
@@ -56,15 +58,20 @@ function InventoryContent() {
     else setFilters((f) => ({ ...f, [key]: "" }));
   }
 
+  function handleFiltersChange(f: InventoryFilters) {
+    setFilters(f);
+    setVisibleCount(PAGE_SIZE);
+  }
+
   return (
     <div className="container-wide px-4 py-8">
       <h1 className="font-heading text-2xl font-semibold mb-6">Inventory</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="lg:hidden mb-2">
-          <FilterBar filters={filters} onChange={(f) => { setFilters(f); setVisibleCount(PAGE_SIZE); }} />
+          <FilterBar filters={filters} onChange={handleFiltersChange} />
         </div>
         <div className="hidden lg:block">
-          <FilterBar filters={filters} onChange={(f) => { setFilters(f); setVisibleCount(PAGE_SIZE); }} />
+          <FilterBar filters={filters} onChange={handleFiltersChange} />
         </div>
 
         <div className="flex-1">
@@ -102,8 +109,12 @@ function InventoryContent() {
             <div className="text-center py-20 border border-border rounded-md bg-surface">
               <SearchX className="h-10 w-10 mx-auto text-ink-muted mb-3" aria-hidden="true" />
               <p className="font-semibold">No vehicles match those filters</p>
-              <p className="text-sm text-ink-muted mt-1">Try widening your price or year range.</p>
-              <button onClick={() => setFilters(emptyFilters)}
+              <p className="text-sm text-ink-muted mt-1">
+                {filters.search
+                  ? `No results for "${filters.search}" — try a different search term.`
+                  : "Try widening your price or year range."}
+              </p>
+              <button onClick={() => handleFiltersChange(emptyFilters)}
                 className="mt-4 inline-flex items-center justify-center h-10 px-5 rounded-xl border-2 border-navy text-navy text-sm font-semibold transition-colors hover:bg-navy hover:text-white">
                 Clear all filters
               </button>

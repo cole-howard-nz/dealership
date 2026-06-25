@@ -7,7 +7,7 @@ export interface VehicleImage {
 export type BodyType = "Sedan" | "Hatchback" | "SUV" | "Ute" | "Van" | "Performance";
 export type Transmission = "Automatic" | "Manual" | "CVT";
 export type FuelType = "Petrol" | "Diesel" | "Hybrid" | "PHEV" | "EV";
-export type DriveType = "FWD" | "RWD" | "AWD" | "4WD";
+export type DriveType = "FWD" | "RWD" | "AWD" | "4WD" | "2WD";
 export type ImportStatus = "NZ New" | "Used Import" | "Ex-Lease";
 export type Condition = "Excellent" | "Very Good" | "Good";
 export type VehicleStatus = "Available" | "Reserved" | "Sold" | "Incoming";
