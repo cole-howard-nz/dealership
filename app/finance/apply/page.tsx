@@ -52,7 +52,7 @@ function FinanceApplyForm() {
     if (step === 0) {
       if (form.fullName.length < 2) e.fullName = "Enter your full name.";
       if (!EMAIL_REGEX.test(form.email)) e.email = "Enter a valid email address.";
-      // if (!NZ_PHONE_REGEX.test(form.phone)) e.phone = "Enter a valid NZ phone number.";
+      if (!NZ_PHONE_REGEX.test(form.phone.replace(/\s+/g, ""))) e.phone = "Enter a valid NZ phone number.";
       if (!form.dateOfBirth) {
         e.dateOfBirth = "Date of birth is required.";
       } else {
@@ -63,11 +63,12 @@ function FinanceApplyForm() {
     }
     if (step === 1) {
       if (!form.monthlyIncome || form.monthlyIncome <= 0) e.monthlyIncome = "Enter a monthly income greater than 0.";
-      if (form.timeInRoleMonths < 0) e.timeInRoleMonths = "Enter a valid number of months.";
+      if (!form.timeInRoleMonths || form.timeInRoleMonths < 0) e.timeInRoleMonths = "Enter a valid number of months.";
     }
     if (step === 2) {
       if (!form.desiredLoanAmount || form.desiredLoanAmount <= 0) e.desiredLoanAmount = "Enter the loan amount you need.";
       if (form.depositAmount < 0) e.depositAmount = "Deposit can't be negative.";
+      if (!form.termMonths || form.termMonths <= 0) e.termMonths = "Enter a valid loan term."
     }
     if (step === 3) {
       if (!form.creditCheckConsent) e.creditCheckConsent = "Credit check consent is required to proceed.";
