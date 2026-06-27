@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FinanceCalculator } from "../../components/FinanceCalculator";
 
 const steps = [
@@ -63,7 +64,7 @@ export default function FinancePage() {
             </div>
           </div>
           <div className="finance-hero-img-wrap">
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=640&fit=crop&q=85"
               alt="Car finance paperwork and keys on a desk"
               className="finance-hero-img"
@@ -82,7 +83,7 @@ export default function FinancePage() {
                 Adjust the price, deposit, and term. The estimate updates live — no email address, no sales call.
               </p>
               <p className="section-sub-text">
-                When the number works for you, hit Apply. The form takes about 5 minutes and we'll come back with a real pre-approval — usually same day.
+                When the number works for you, hit Apply. The form takes about 5 minutes and we&apos;ll come back with a real pre-approval — usually same day.
               </p>
               <div className="calculator-disclaimer">
                 All estimates are indicative only. Actual rate and repayments confirmed with your pre-approval.

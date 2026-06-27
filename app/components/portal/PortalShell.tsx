@@ -20,7 +20,6 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
-  X,
 } from "lucide-react";
 import { hasPermission, type Permission } from "../../lib/permissions";
 import { Header } from "../Header";

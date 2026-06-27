@@ -15,7 +15,7 @@
  * - Audit logging done directly in authorize() and signOut event.
  */
 
-import NextAuth, { type NextAuthConfig, type DefaultSession } from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
@@ -140,9 +140,7 @@ const authConfig: NextAuthConfig = {
         throw new Error("Account deactivated");
       }
 
-      // Cast needed: @auth/prisma-adapter (still in node_modules) injects
-      // AdapterUser into the session type, requiring emailVerified. We are not
-      // using the adapter at runtime — this cast suppresses the type bleed.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (session as any).user = {
         id: freshUser.id,
         name: freshUser.name,
@@ -159,6 +157,7 @@ const authConfig: NextAuthConfig = {
 
   events: {
     async signOut(event) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const token = (event as any)?.token;
       const userId = token?.userId as string | undefined;
       if (userId) {

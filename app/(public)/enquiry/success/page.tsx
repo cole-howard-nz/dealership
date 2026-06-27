@@ -8,7 +8,7 @@ export default function EnquirySuccessPage() {
         <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-5" aria-hidden="true" />
         <h1 className="font-heading text-3xl font-bold">Enquiry sent</h1>
         <p className="text-ink-muted mt-3 text-lg">
-          We've received your enquiry and will be in touch during business hours — usually within a few hours.
+          We&apos;ve received your enquiry and will be in touch during business hours — usually within a few hours.
         </p>
         <p className="text-sm text-ink-muted mt-2">
           Mon–Fri 8:30am–5:30pm · Sat 9am–4pm

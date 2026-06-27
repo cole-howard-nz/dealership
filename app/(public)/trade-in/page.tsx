@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const factors = [
@@ -51,17 +52,17 @@ export default function TradeInPage() {
           <div className="tradein-hero-copy">
             <div className="eyebrow-accent">Trade-in</div>
             <h1 className="tradein-h1">
-              What's your<br />car actually worth?
+              What&apos;s your<br />car actually worth?
             </h1>
             <p className="tradein-hero-sub">
-              Get a straight number, not a "come in and we'll see." Tell us about your car and we'll come back with a real estimate — same day, no obligation.
+              Get a straight number, not a &quot;come in and we&apos;ll see.&quot; Tell us about your car and we&apos;ll come back with a real estimate — same day, no obligation.
             </p>
             <Link href="/trade-in/submit" className="tradein-btn-primary">
               Get my trade-in value
             </Link>
           </div>
           <div className="tradein-hero-img-wrap">
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&h=640&fit=crop&q=85"
               alt="Person handing over car keys at a dealership trade-in"
               className="tradein-hero-img"

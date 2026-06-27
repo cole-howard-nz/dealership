@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Gauge, Fuel, Calendar, Heart, GitCompare } from "lucide-react";
 import type { Vehicle } from "../types";
 import { Badge } from "./Badge";
@@ -42,7 +43,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.variant ? " " + vehicle.variant : ""}`}
       >
         <div className="relative aspect-[3/2] bg-border">
-          {cover && <img src={cover.url} alt={cover.alt} className={`h-full w-full object-cover ${isSold ? "opacity-50" : ""}`} loading="lazy" />}
+          {cover && <Image src={cover.url} alt={cover.alt} className={`h-full w-full object-cover ${isSold ? "opacity-50" : ""}`} loading="lazy" />}
           <div className="absolute top-3 left-3 flex gap-2">
             {isSold && <Badge tone="navy">Sold</Badge>}
             {isIncoming && (

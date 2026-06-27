@@ -28,7 +28,7 @@ export default function TermsPage() {
             <p className="text-ink-muted">
               Vehicle listings, specifications, and pricing on this site are provided in good faith and kept as
               accurate as possible. However, errors may occur. All prices are in New Zealand dollars and exclude
-              any applicable on-road costs unless stated as "Drive Away." Prices and availability are subject
+              any applicable on-road costs unless stated as &quot;Drive Away.&quot; Prices and availability are subject
               to change without notice. We recommend confirming current details directly with our team before
               travelling to view a vehicle.
             </p>

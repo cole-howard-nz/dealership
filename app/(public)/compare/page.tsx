@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { GitCompare } from "lucide-react";
 import { vehicles } from "../../data/vehicles";
 import { useShortlist } from "../../hooks/useShortlist";
@@ -69,7 +70,7 @@ export default function ComparePage() {
                   <th key={v.id} className="compare-vehicle-col align-top pb-6 px-2">
                     <div className="compare-vehicle-card">
                       <div className="compare-img-wrap">
-                        <img
+                        <Image
                           src={v.images[0]?.url}
                           alt={v.images[0]?.alt ?? ""}
                           className="compare-img"

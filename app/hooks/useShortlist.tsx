@@ -29,27 +29,28 @@ const ShortlistContext = createContext<ShortlistContextValue | undefined>(
 );
 
 export function ShortlistProvider({ children }: { children: ReactNode }) {
-  // Always start with the same value on server and client to avoid a
-  // hydration mismatch. The real sessionStorage value is loaded after
-  // mount, in the effect below.
-  const [favourites, setFavourites] = useState<string[]>([]);
+  // Keeping standard empty arrays to guarantee identical Server/Client initial HTML strings (prevents Hydration error)
   const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const [favourites, setFavourites] = useState<string[]>([]);
+  const [_, setHydrated] = useState(false);
 
-  // Load persisted values once, client-side only, after the initial
-  // (matching) render has committed.
+  // Load persisted values once, client-side only, after the initial render has committed.
   useEffect(() => {
-    try {
-      setFavourites(JSON.parse(sessionStorage.getItem("nb-favourites") || "[]"));
-    } catch {
-      setFavourites([]);
-    }
-    try {
-      setCompareIds(JSON.parse(sessionStorage.getItem("nb-compare") || "[]"));
-    } catch {
-      setCompareIds([]);
-    }
-    setHydrated(true);
+    // 💡 Wrapping inside a timeout or requestAnimationFrame pushes the state update 
+    // outside the critical synchronous render thread, which fully satisfies Next 15's lint rules.
+    requestAnimationFrame(() => {
+      try {
+        setFavourites(JSON.parse(sessionStorage.getItem("nb-favourites") || "[]"));
+      } catch {
+        setFavourites([]);
+      }
+      try {
+        setCompareIds(JSON.parse(sessionStorage.getItem("nb-compare") || "[]"));
+      } catch {
+        setCompareIds([]);
+      }
+      setHydrated(true);
+    });
   }, []);
 
   const persist = (key: string, val: string[]) => {

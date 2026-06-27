@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft, ChevronRight, Expand, X, Heart, GitCompare, Gauge, Fuel,
@@ -17,15 +18,16 @@ import { FinanceCalculator } from "../../../components/FinanceCalculator";
 import { useShortlist } from "../../../hooks/useShortlist";
 import { useToast } from "../../../hooks/useToast";
 
-
 type Props = {
-    params: Promise<{
-        slug: string;
-    }>;
+  params: Promise<{
+    slug: string;
+  }>;
 };
 
-export default async function VehicleDetailPage({ params }: Props) {
-  const { slug } = await params;
+export default function VehicleDetailPage({ params }: Props) {
+  // Use React's use() hook to safely unwrap params inside a client component
+  const { slug } = use(params);
+  
   const vehicle = getVehicleBySlug(slug);
   const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
@@ -73,10 +75,13 @@ export default async function VehicleDetailPage({ params }: Props) {
         <div className="lg:col-span-2">
           {/* Gallery */}
           <div className="relative rounded-xl overflow-hidden bg-border aspect-[3/2]">
-            <img
+            <Image
               src={images[activeImage].url}
               alt={images[activeImage].alt}
               className="h-full w-full object-cover"
+              width={960}
+              height={640}
+              priority
             />
             {images.length > 1 && (
               <>
@@ -118,7 +123,7 @@ export default async function VehicleDetailPage({ params }: Props) {
                   i === activeImage ? "border-accent" : "border-transparent"
                 }`}
               >
-                <img src={img.url} alt="" className="h-full w-full object-cover" />
+                <Image src={img.url} alt="" width={96} height={64} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
@@ -344,10 +349,12 @@ export default async function VehicleDetailPage({ params }: Props) {
               </button>
             </>
           )}
-          <img
+          <Image
             src={images[activeImage].url}
             alt={images[activeImage].alt}
             className="max-h-full max-w-full object-contain"
+            width={1920}
+            height={1080}
           />
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
             {activeImage + 1} / {images.length}

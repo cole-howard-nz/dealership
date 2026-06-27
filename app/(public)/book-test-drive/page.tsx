@@ -62,9 +62,9 @@ function BookTestDriveForm() {
           <h1 className="font-heading text-3xl font-bold">Book a test drive</h1>
         </div>
         <p className="text-ink-muted mb-8">
-          No vehicle picked yet? That's fine — choose from the list below, or{" "}
+          No vehicle picked yet? That&apos;s fine — choose from the list below, or{" "}
           <Link href="/inventory" className="text-accent hover:underline font-medium">browse inventory</Link> first.
-          We'll confirm your booking within one business day.
+          We&apos;ll confirm your booking within one business day.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-surface border border-border rounded-xl p-6" noValidate>

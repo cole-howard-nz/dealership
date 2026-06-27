@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Gauge, FileText, Users, Truck, Award, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Gauge, FileText, Truck, Award, CheckCircle2 } from "lucide-react";
 
 const INSPECTION_STEPS = [
   {
@@ -54,7 +54,7 @@ export default function AboutPage() {
             </h1>
             <p className="about-hero-sub">
               Northbridge Motors was built on a simple idea: if every vehicle is independently
-              inspected before listing, buyers don't have to take our word for it. The report
+              inspected before listing, buyers don&apos;t have to take our word for it. The report
               is there. The facts are there.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -65,7 +65,7 @@ export default function AboutPage() {
 
           {/* ── Redesigned RHS: ruled stat list ── */}
           <div className="about-hero-stats-col" aria-label="Key facts">
-            {HERO_STATS.map((s, i) => (
+            {HERO_STATS.map((s) => (
               <div key={s.value} className="about-stat-row">
                 <div className="about-stat-rule" aria-hidden="true" />
                 <div className="about-stat-inner">
@@ -84,7 +84,7 @@ export default function AboutPage() {
         <div className="max-w-reading mb-10">
           <h2 className="font-heading text-3xl font-bold">Our inspection process</h2>
           <p className="text-ink-muted mt-3">
-            Every vehicle goes through five steps before it's listed. Not most vehicles. Every vehicle.
+            Every vehicle goes through five steps before it&apos;s listed. Not most vehicles. Every vehicle.
           </p>
         </div>
 
@@ -113,21 +113,21 @@ export default function AboutPage() {
               <ShieldCheck className="h-8 w-8 text-accent mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-heading font-semibold text-lg">Transparent pricing</h3>
               <p className="text-sm text-ink-muted mt-2">
-                The price you see is the price you pay. No "+ORC" surprises, no hidden dealer fees at the desk.
+                The price you see is the price you pay. No &quot;+ORC&quot; surprises, no hidden dealer fees at the desk.
               </p>
             </div>
             <div className="text-center px-4">
               <Award className="h-8 w-8 text-accent mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-heading font-semibold text-lg">Fast finance decisions</h3>
               <p className="text-sm text-ink-muted mt-2">
-                Pre-approval in minutes for most applicants. Know what you're borrowing before you step foot in the yard.
+                Pre-approval in minutes for most applicants. Know what you&apos;re borrowing before you step foot in the yard.
               </p>
             </div>
             <div className="text-center px-4">
               <Truck className="h-8 w-8 text-accent mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-heading font-semibold text-lg">Nationwide delivery</h3>
               <p className="text-sm text-ink-muted mt-2">
-                Can't come to us? We'll deliver anywhere in New Zealand. Regional buyers are our most loyal customers.
+                Can&apos;t come to us? We&apos;ll deliver anywhere in New Zealand. Regional buyers are our most loyal customers.
               </p>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function AboutPage() {
         <div className="max-w-reading mb-10">
           <h2 className="font-heading text-3xl font-bold">The team</h2>
           <p className="text-ink-muted mt-3">
-            Small enough that you'll speak to the same person twice. Big enough to get the job done properly.
+            Small enough that you&apos;ll speak to the same person twice. Big enough to get the job done properly.
           </p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6">

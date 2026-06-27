@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useActionState } from "react";
-import { Eye, EyeOff, AlertCircle, Lock, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Lock } from "lucide-react";
 import { signInAction } from "./actions";
 
 // ─── Rate limiting (client-side display only — server enforces real limits) ───
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
-const WINDOW_MINUTES = 10;
 const STORAGE_KEY = "nbm_login_attempts";
 
 interface AttemptRecord {
@@ -44,21 +43,31 @@ const initialState = { error: null as string | null };
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(signInAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
-  const [lockoutMinutes, setLockoutMinutes] = useState<number | null>(null);
   const [lockoutSeconds, setLockoutSeconds] = useState<number>(0);
+
+  const [lockoutMinutes, setLockoutMinutes] = useState<number | null>(() => {
+    if (typeof window !== "undefined") {
+      const record = getAttempts();
+      if (record.lockedUntil && record.lockedUntil > Date.now()) {
+        return Math.ceil((record.lockedUntil - Date.now()) / 60000); 
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (state?.error) {
       const record = getAttempts();
+      const newCount = (record?.count || 0) + 1;
       const now = Date.now();
-      if (now - record.firstAttemptAt > WINDOW_MINUTES * 60 * 1000) {
-        saveAttempts({ count: 1, firstAttemptAt: now, lockedUntil: null });
-        return;
-      }
-      const newCount = record.count + 1;
       const lockedUntil = newCount >= MAX_ATTEMPTS ? now + LOCKOUT_MINUTES * 60 * 1000 : null;
       saveAttempts({ ...record, count: newCount, lockedUntil });
-      if (lockedUntil) setLockoutMinutes(LOCKOUT_MINUTES);
+      
+      if (lockedUntil) {
+        requestAnimationFrame(() => {
+          setLockoutMinutes(LOCKOUT_MINUTES);
+        });
+      }
     }
   }, [state?.error]);
 
@@ -76,11 +85,6 @@ export function LoginForm() {
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [lockoutMinutes]);
-
-  useEffect(() => {
-    const record = getAttempts();
-    if (record.lockedUntil && record.lockedUntil > Date.now()) setLockoutMinutes(LOCKOUT_MINUTES);
-  }, []);
 
   const isLocked = lockoutMinutes !== null && lockoutMinutes > 0;
 

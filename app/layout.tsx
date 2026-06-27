@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
-// @ts-ignore: side-effect CSS import declaration is handled by Next.js
 import "./globals.css";
 
 const inter = Inter({

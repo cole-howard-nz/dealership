@@ -45,7 +45,7 @@ export function BookTestDrivePage() {
   return (
     <div className="container-wide px-4 py-10 max-w-reading mx-auto">
       <h1 className="font-heading text-2xl font-semibold mb-2">Book a test drive</h1>
-      <p className="text-ink-muted mb-6">No vehicle picked yet? That's fine — pick one from the list below or browse first.</p>
+      <p className="text-ink-muted mb-6">No vehicle picked yet? That&apos;s fine — pick one from the list below or browse first.</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <SelectField label="Vehicle" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
           options={vehicles.filter((v) => v.status === "Available").map((v) => ({ label: `${v.year} ${v.make} ${v.model}`, value: v.id }))} />

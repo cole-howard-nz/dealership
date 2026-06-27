@@ -68,10 +68,10 @@ export default function ContactPage() {
             <div className="contact-heading-wrap">
               <p className="contact-eyebrow">Northbridge Motors</p>
               <h1 className="contact-h1">
-                Let's talk.
+                Let&apos;s talk.
               </h1>
               <p className="contact-subhead">
-                Whether you've found a car you like, have questions about finance, or want a trade-in estimate — drop us a message and we'll come back to you within the hour during business hours.
+                Whether you&apos;ve found a car you like, have questions about finance, or want a trade-in estimate — drop us a message and we&apos;ll come back to you within the hour during business hours.
               </p>
             </div>
 
@@ -80,7 +80,7 @@ export default function ContactPage() {
                 <CheckCircle2 className="contact-success-icon" aria-hidden="true" />
                 <div>
                   <p className="contact-success-title">Message received</p>
-                  <p className="contact-success-body">We'll be in touch during business hours — usually within the hour.</p>
+                  <p className="contact-success-body">We&apos;ll be in touch during business hours — usually within the hour.</p>
                 </div>
               </div>
             ) : (

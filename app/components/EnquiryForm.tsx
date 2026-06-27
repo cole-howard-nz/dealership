@@ -12,7 +12,7 @@ interface Props {
 
 type Errors = Partial<Record<keyof VehicleEnquiry, string>>;
 
-export function EnquiryForm({ vehicleId, vehicleLabel }: Props) {
+export function EnquiryForm({ vehicleLabel }: Props) {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", message: "",
     preferredContactMethod: "Phone" as "Phone" | "Email",
@@ -22,6 +22,7 @@ export function EnquiryForm({ vehicleId, vehicleLabel }: Props) {
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function validateField(field: string, value: any): string {
     switch (field) {
       case "name":
@@ -41,6 +42,7 @@ export function EnquiryForm({ vehicleId, vehicleLabel }: Props) {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleBlur(field: string, value: any) {
     const error = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: error || undefined }));
@@ -67,7 +69,7 @@ export function EnquiryForm({ vehicleId, vehicleLabel }: Props) {
     return (
       <div className="bg-success/10 border border-success/30 rounded-md p-6 text-center">
         <CheckCircle2 className="h-8 w-8 text-success mx-auto mb-2" aria-hidden="true" />
-        <h3 className="font-heading font-semibold text-lg">Thanks — we've got your enquiry.</h3>
+        <h3 className="font-heading font-semibold text-lg">Thanks — we&apos;ve got your enquiry.</h3>
         <p className="text-sm text-ink-muted mt-1">
           A member of our sales team will be in touch by your preferred method shortly.
         </p>

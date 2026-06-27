@@ -8,7 +8,7 @@ export default function FinanceSuccessPage() {
         <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-5" aria-hidden="true" />
         <h1 className="font-heading text-3xl font-bold">Application received</h1>
         <p className="text-ink-muted mt-3 text-lg">
-          We've received your finance application. Our team will review it and be in touch within one business day.
+          We&apos;ve received your finance application. Our team will review it and be in touch within one business day.
         </p>
 
         <div className="mt-8 bg-surface border border-border rounded-xl p-6 text-left max-w-sm mx-auto">

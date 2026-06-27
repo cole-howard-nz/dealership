@@ -18,7 +18,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-heading font-semibold text-xl mb-3">1. Who we are</h2>
             <p className="text-ink-muted">
-              Northbridge Motors Limited ("we", "us", "our") is a vehicle retailer operating in New Zealand.
+              Northbridge Motors Limited (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is a vehicle retailer operating in New Zealand.
               This policy explains how we collect and use personal information in accordance with the New Zealand
               Privacy Act 2020.
             </p>

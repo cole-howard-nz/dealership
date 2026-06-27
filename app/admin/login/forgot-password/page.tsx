@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Reset Password — Northbridge Motors Staff Portal",

@@ -108,7 +108,7 @@ export default function TradeInSubmitPage() {
 
         <h1 className="font-heading text-3xl font-bold mb-2">Tell us about your vehicle</h1>
         <p className="text-ink-muted mb-8">
-          Fill in what you know — we'll come back with an honest estimate, no obligation.
+          Fill in what you know — we&apos;ll come back with an honest estimate, no obligation.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
@@ -187,7 +187,7 @@ export default function TradeInSubmitPage() {
           {/* ── Modifications ───────────────────────────────────── */}
           <div className="bg-surface border border-border rounded-xl p-6">
             <h2 className="font-heading font-semibold text-base mb-1">Modifications</h2>
-            <p className="text-sm text-ink-muted mb-4">Modifications can affect value — let us know what's been done.</p>
+            <p className="text-sm text-ink-muted mb-4">Modifications can affect value — let us know what&apos;s been done.</p>
 
             <CheckboxField
               label="This vehicle has been modified from stock."

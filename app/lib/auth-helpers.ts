@@ -67,7 +67,6 @@ interface LogActionParams {
   entityType: string;
   entityId: string;
   locationId?: string;
-  metadata?: Record<string, unknown>;
 }
 
 export async function logAction({
@@ -76,7 +75,6 @@ export async function logAction({
   entityType,
   entityId,
   locationId,
-  metadata,
 }: LogActionParams) {
   await prisma.auditLog.create({
     data: {
@@ -85,7 +83,6 @@ export async function logAction({
       entityType,
       entityId,
       locationId,
-      // metadata,
     },
   });
 }
