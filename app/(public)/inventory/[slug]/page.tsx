@@ -17,9 +17,17 @@ import { FinanceCalculator } from "../../../components/FinanceCalculator";
 import { useShortlist } from "../../../hooks/useShortlist";
 import { useToast } from "../../../hooks/useToast";
 
-export default function VehicleDetailPage({ params }: { params: { slug: string } }) {
+
+type Props = {
+    params: Promise<{
+        slug: string;
+    }>;
+};
+
+export default async function VehicleDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const vehicle = getVehicleBySlug(slug);
   const router = useRouter();
-  const vehicle = getVehicleBySlug(params.slug);
   const [activeImage, setActiveImage] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const { isFavourited, toggleFavourite, isInCompare, toggleCompare, compareFull } = useShortlist();

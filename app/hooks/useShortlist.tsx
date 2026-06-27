@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   ReactNode,
   useCallback,
 } from "react";
@@ -28,22 +29,28 @@ const ShortlistContext = createContext<ShortlistContextValue | undefined>(
 );
 
 export function ShortlistProvider({ children }: { children: ReactNode }) {
-  const [favourites, setFavourites] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
+  // Always start with the same value on server and client to avoid a
+  // hydration mismatch. The real sessionStorage value is loaded after
+  // mount, in the effect below.
+  const [favourites, setFavourites] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load persisted values once, client-side only, after the initial
+  // (matching) render has committed.
+  useEffect(() => {
     try {
-      return JSON.parse(sessionStorage.getItem("nb-favourites") || "[]");
+      setFavourites(JSON.parse(sessionStorage.getItem("nb-favourites") || "[]"));
     } catch {
-      return [];
+      setFavourites([]);
     }
-  });
-  const [compareIds, setCompareIds] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
     try {
-      return JSON.parse(sessionStorage.getItem("nb-compare") || "[]");
+      setCompareIds(JSON.parse(sessionStorage.getItem("nb-compare") || "[]"));
     } catch {
-      return [];
+      setCompareIds([]);
     }
-  });
+    setHydrated(true);
+  }, []);
 
   const persist = (key: string, val: string[]) => {
     if (typeof window !== "undefined") {
