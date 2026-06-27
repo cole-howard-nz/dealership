@@ -3,22 +3,22 @@ import { Calendar, Gauge, ClipboardCheck, CreditCard } from "lucide-react";
 
 const factors = [
   {
-    Icon: Calendar,
+    tag: "01",
     title: "Year & make",
     body: "Newer cars and popular makes hold value better. JDM models with strong demand often surprise on the upside.",
   },
   {
-    Icon: Gauge,
+    tag: "02",
     title: "Odometer",
     body: "Lower isn't always better — a well-maintained 120,000km car can be worth more than a neglected 60,000km one.",
   },
   {
-    Icon: ClipboardCheck,
+    tag: "03",
     title: "Condition",
     body: "Interior, paint, tyre tread, and service records all factor in. We'll ask you for photos so we can be accurate.",
   },
   {
-    Icon: CreditCard,
+    tag: "04",
     title: "Outstanding finance",
     body: "If there's money still owing on the car, we'll work that into the offer. It doesn't disqualify you.",
   },
@@ -93,20 +93,24 @@ export default function TradeInPage() {
       {/* ─── WHAT AFFECTS VALUE ───────────────────────────────────── */}
       <section className="section-dark">
         <div className="container-wide px-4">
-          <div className="mb-12">
+          <div className="factors-header">
             <h2 className="section-heading-light">What affects your estimate</h2>
             <p className="section-sub-light">
               We look at four main things. The more detail you give us, the more accurate we can be.
             </p>
           </div>
+
           <div className="factors-grid">
-            {factors.map(({ Icon, title, body }) => (
-              <div key={title} className="factor-card">
-                <div className="factor-icon-wrap">
-                  <Icon size={20} aria-hidden="true" className="factor-icon-svg" />
+            {factors.map((f) => (
+              <div key={f.tag} className="factor-item">
+                <div className="factor-top-rule" aria-hidden="true" />
+                <div className="factor-content">
+                  <span className="factor-tag" aria-hidden="true">{f.tag}</span>
+                  <div className="factor-text">
+                    <h3 className="factor-title">{f.title}</h3>
+                    <p className="factor-body">{f.body}</p>
+                  </div>
                 </div>
-                <h3 className="factor-title">{title}</h3>
-                <p className="factor-body">{body}</p>
               </div>
             ))}
           </div>
@@ -137,7 +141,7 @@ export default function TradeInPage() {
       <style>{`
         .tradein-page { background: var(--color-bg); }
 
-        /* ─── HERO ──────────────────────────────────────────────── */
+        /* ─── HERO ── */
         .tradein-hero {
           background: var(--color-navy);
           padding: 5rem 0 4rem;
@@ -203,7 +207,7 @@ export default function TradeInPage() {
         }
         .tradein-btn-primary:hover { background: #C44A21; transform: translateY(-1px); }
 
-        /* ─── SECTIONS ──────────────────────────────────────────── */
+        /* ─── SECTIONS ── */
         .section-light { padding: 5rem 0; background: #fff; border-bottom: 1px solid var(--color-border); }
         .section-dark { padding: 5rem 0; background: var(--color-navy); }
         .section-heading {
@@ -235,7 +239,7 @@ export default function TradeInPage() {
           margin: 0;
         }
 
-        /* ─── STEPS ─────────────────────────────────────────────── */
+        /* ─── STEPS ── */
         .steps-grid {
           display: grid;
           grid-template-columns: 1fr;
@@ -270,48 +274,71 @@ export default function TradeInPage() {
           margin: 0;
         }
 
-        /* ─── FACTORS ───────────────────────────────────────────── */
+        /* ─── FACTORS (redesigned) ── */
+        .factors-header {
+          margin-bottom: 3rem;
+        }
         .factors-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 1.5rem;
+          gap: 0;
         }
-        @media (min-width: 640px) { .factors-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .factors-grid { grid-template-columns: repeat(4, 1fr); } }
-        .factor-card {
-          padding: 1.75rem;
-          background: rgba(255,255,255,0.04);
-          border: 1.5px solid rgba(255,255,255,0.1);
-          border-radius: 12px;
-          transition: background 0.15s;
+        @media (min-width: 768px) {
+          .factors-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
-        .factor-card:hover { background: rgba(255,255,255,0.07); }
-        .factor-icon-wrap {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 8px;
-          background: rgba(225, 90, 44, 0.15);
-          margin-bottom: 1rem;
+        @media (min-width: 1024px) {
+          .factors-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
         }
-        .factor-icon-svg { color: #E15A2C; }
+        .factor-item {
+          padding: 0 2rem 0 0;
+        }
+        .factor-item:last-child {
+          padding-right: 0;
+        }
+        @media (max-width: 767px) {
+          .factor-item {
+            padding: 0;
+          }
+        }
+        .factor-top-rule {
+          height: 2px;
+          background: #E15A2C;
+          margin-bottom: 1.5rem;
+          position: relative;
+        }
+        .factor-content {
+          padding-bottom: 2rem;
+        }
+        .factor-tag {
+          display: block;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.3);
+          margin-bottom: 0.75rem;
+        }
+        .factor-text {}
         .factor-title {
           font-family: var(--font-sora), sans-serif;
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 700;
           color: #fff;
-          margin: 0 0 0.5rem;
+          margin: 0 0 0.6rem;
+          line-height: 1.3;
         }
         .factor-body {
           font-size: 0.875rem;
-          line-height: 1.6;
-          color: rgba(255,255,255,0.6);
+          line-height: 1.65;
+          color: rgba(255,255,255,0.55);
           margin: 0;
         }
 
-        /* ─── CTA BAND ──────────────────────────────────────────── */
+        /* ─── CTA BAND ── */
         .tradein-cta-section {
           padding: 5rem 0;
           background: var(--color-bg);
