@@ -46,6 +46,8 @@ export function HomePage() {
             src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&h=1080&fit=crop&q=85"
             alt="JDM sports car — Northbridge Motors performance inventory"
             className="hero-img"
+            width={1920}
+            height={1080}
           />
           <div className="hero-overlay" />
         </div>
@@ -201,6 +203,8 @@ export function HomePage() {
                 src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&h=600&fit=crop&q=85"
                 alt="Handing over car keys — trade-in valuation"
                 className="tradein-img"
+                width={1920}
+                height={1080}
               />
             </div>
             <div className="tradein-copy">

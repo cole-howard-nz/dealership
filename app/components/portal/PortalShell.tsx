@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
@@ -193,10 +193,24 @@ function LocationSelector({
 
 export function PortalShell({ user, children }: PortalShellProps) {
   const pathname = usePathname();
-  const [activeLocationId, setActiveLocationId] = useState<string | "all">(
-    user.locations.length === 1 ? user.locations[0].id : "all"
-  );
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeLocationId: string | "all" =
+    (searchParams.get("loc") as string | null) ??
+    (user.locations.length === 1 ? user.locations[0].id : "all");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const handleLocationSelect = (id: string | "all") => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (id === "all") {
+      next.delete("loc");
+    } else {
+      next.set("loc", id);
+    }
+    next.delete("page"); // reset pagination on location change
+    const qs = next.toString();
+    router.push(`${pathname}${qs ? `?${qs}` : ""}`);
+  };
 
   const permissions = user.role.permissions;
 
@@ -349,7 +363,7 @@ export function PortalShell({ user, children }: PortalShellProps) {
                     <LocationSelector
                       locations={user.locations}
                       activeLocationId={activeLocationId}
-                      onSelect={setActiveLocationId}
+                      onSelect={handleLocationSelect}
                     />
                   </div>
                 )}

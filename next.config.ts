@@ -11,6 +11,23 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["localhost:3000", "staff.northbridgemotors.co.nz"],
     },
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'trademe.tmcdn.co.nz',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

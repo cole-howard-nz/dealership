@@ -40,7 +40,7 @@ export function ComparePage() {
               <th className="text-left p-3 w-32"></th>
               {selected.map((v) => (
                 <th key={v.id} className="p-3 text-left align-top">
-                  <Image src={v.images[0]?.url} alt={v.images[0]?.alt ?? ""} className="w-full h-32 object-cover rounded-md mb-2" />
+                  <Image width={1920} height={1080} src={v.images[0]?.url} alt={v.images[0]?.alt ?? ""} className="w-full h-32 object-cover rounded-md mb-2" />
                   <p className="font-heading font-semibold">{v.year} {v.make} {v.model}</p>
                   <div className="flex gap-2 mt-2">
                     <Link to={`/inventory/${v.slug}`} className="text-xs font-semibold text-accent hover:underline">Enquire Now</Link>

@@ -71,6 +71,8 @@ export default function ComparePage() {
                     <div className="compare-vehicle-card">
                       <div className="compare-img-wrap">
                         <Image
+                          width={1920}
+                          height={1080}
                           src={v.images[0]?.url}
                           alt={v.images[0]?.alt ?? ""}
                           className="compare-img"

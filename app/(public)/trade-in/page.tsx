@@ -66,6 +66,8 @@ export default function TradeInPage() {
               src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&h=640&fit=crop&q=85"
               alt="Person handing over car keys at a dealership trade-in"
               className="tradein-hero-img"
+              width={1920}
+              height={1080}
             />
           </div>
         </div>

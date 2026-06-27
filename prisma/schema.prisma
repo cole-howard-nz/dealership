@@ -1,5 +1,5 @@
 // Northbridge Motors — Staff Portal
-// Prisma schema for Phase 1: Auth shell, roles, locations, sessions, audit log
+// Prisma schema — Phase 1 (auth/shell) + Phase 2 (request queues) + Phase 3 (inventory/staff/roles)
 
 generator client {
   provider = "prisma-client-js"
@@ -19,6 +19,13 @@ enum RequestStatus {
   RESOLVED
   DECLINED
   CLOSED
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+  ARCHIVED
 }
 
 // ─── Role & Permissions ───────────────────────────────────────────────────────
@@ -43,12 +50,17 @@ model Location {
   name      String   // e.g. "Wellington Yard"
   address   String?
   phone     String?
+  email     String?  // for Phase 4 notifications
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users    UserLocation[]
-  auditLog AuditLog[]
+  users               UserLocation[]
+  auditLog            AuditLog[]
+  contactRequests     ContactRequest[]
+  tradeInRequests     TradeInRequest[]
+  financeApplications FinanceApplication[]
+  vehicles            Vehicle[]
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────
@@ -57,10 +69,10 @@ model User {
   id           String    @id @default(cuid())
   name         String
   email        String    @unique
-  passwordHash String?   // null if using OAuth (future)
+  passwordHash String?   // null if invite not yet accepted
   roleId       String
   role         Role      @relation(fields: [roleId], references: [id])
-  isActive     Boolean   @default(true)
+  isActive     Boolean   @default(false) // false until invite accepted
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   lastLoginAt  DateTime?
@@ -68,12 +80,20 @@ model User {
   locations UserLocation[]
   sessions  Session[]
   auditLogs AuditLog[]
+  notes     Note[]
+
+  // Assigned requests (back-relations)
+  assignedContactRequests     ContactRequest[]     @relation("ContactRequestAssignee")
+  assignedTradeInRequests     TradeInRequest[]     @relation("TradeInRequestAssignee")
+  assignedFinanceApplications FinanceApplication[] @relation("FinanceApplicationAssignee")
 
   // Invitation fields
   inviteToken       String?   @unique
   inviteTokenExpiry DateTime?
   inviteAccepted    Boolean   @default(false)
   invitedById       String?
+  invitedBy         User?     @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedUsers      User[]    @relation("InvitedBy")
 }
 
 // Join table: user ↔ location (many-to-many)
@@ -124,15 +144,178 @@ model PasswordResetToken {
 // ─── Audit Log ────────────────────────────────────────────────────────────────
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  actorId    String?  // null for system actions
-  actor      User?    @relation(fields: [actorId], references: [id])
-  action     String   // e.g. "STATUS_CHANGED", "NOTE_ADDED", "USER_CREATED"
-  entityType String   // e.g. "TradeInRequest", "User"
+  id         String    @id @default(cuid())
+  actorId    String?   // null for system actions
+  actor      User?     @relation(fields: [actorId], references: [id])
+  action     String    // e.g. "STATUS_CHANGED", "NOTE_ADDED", "USER_CREATED"
+  entityType String    // e.g. "TradeInRequest", "User"
   entityId   String
   locationId String?
   location   Location? @relation(fields: [locationId], references: [id])
   /// Captures before/after values. Personal data must NOT be stored here.
   metadata   Json?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+// ─── Phase 2: Request queues ──────────────────────────────────────────────────
+
+model ContactRequest {
+  id           String        @id @default(cuid())
+  name         String
+  email        String
+  phone        String
+  message      String
+  locationId   String
+  location     Location      @relation(fields: [locationId], references: [id])
+  status       RequestStatus @default(NEW)
+  assignedToId String?
+  assignedTo   User?         @relation("ContactRequestAssignee", fields: [assignedToId], references: [id])
+  notes        Note[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([locationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model TradeInRequest {
+  id                 String        @id @default(cuid())
+  // Contact
+  name               String
+  email              String
+  phone              String
+  preferredContact   String
+  // Vehicle
+  vehicleMake        String
+  vehicleModel       String
+  vehicleYear        Int
+  plateNumber        String?
+  odometerKm         Int
+  condition          String
+  isModified         Boolean       @default(false)
+  modifications      String[]
+  vehicleDescription String?
+  outstandingFinance Boolean       @default(false)
+  // Location
+  locationId         String
+  location           Location      @relation(fields: [locationId], references: [id])
+  // Staff fields
+  estimatedValue     Int?          // set by staff after review
+  status             RequestStatus @default(NEW)
+  assignedToId       String?
+  assignedTo         User?         @relation("TradeInRequestAssignee", fields: [assignedToId], references: [id])
+  notes              Note[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([locationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model FinanceApplication {
+  id                 String        @id @default(cuid())
+  // Personal
+  fullName           String
+  email              String
+  phone              String
+  dateOfBirth        DateTime
+  address            String
+  // Employment
+  employmentStatus   String
+  employerName       String?
+  monthlyIncome      Int
+  timeInRoleMonths   Int
+  // Loan
+  vehicleId          String?       // links to inventory Vehicle
+  vehicle            Vehicle?      @relation(fields: [vehicleId], references: [id])
+  desiredLoanAmount  Int
+  depositAmount      Int
+  termMonths         Int
+  hasTradeIn         Boolean       @default(false)
+  // Consents
+  creditCheckConsent Boolean
+  termsAccepted      Boolean
+  // Location
+  locationId         String
+  location           Location      @relation(fields: [locationId], references: [id])
+  // Staff fields
+  status             RequestStatus @default(NEW)
+  assignedToId       String?
+  assignedTo         User?         @relation("FinanceApplicationAssignee", fields: [assignedToId], references: [id])
+  notes              Note[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([locationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Polymorphic internal notes — one of the three FK fields is set per row
+model Note {
+  id        String   @id @default(cuid())
+  body      String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+
+  contactRequestId     String?
+  contactRequest       ContactRequest?     @relation(fields: [contactRequestId], references: [id], onDelete: Cascade)
+  tradeInRequestId     String?
+  tradeInRequest       TradeInRequest?     @relation(fields: [tradeInRequestId], references: [id], onDelete: Cascade)
+  financeApplicationId String?
+  financeApplication   FinanceApplication? @relation(fields: [financeApplicationId], references: [id], onDelete: Cascade)
+
+  @@index([contactRequestId])
+  @@index([tradeInRequestId])
+  @@index([financeApplicationId])
+}
+
+// ─── Phase 3: Vehicle inventory ───────────────────────────────────────────────
+
+model Vehicle {
+  id                  String        @id @default(cuid())
+  /// URL slug — auto-generated from year/make/model, unique
+  slug                String        @unique
+  make                String
+  model               String
+  variant             String?
+  year                Int
+  bodyType            String        // Sedan | Hatchback | SUV | Ute | Van | Performance
+  price               Int           // NZD cents-free integer (e.g. 24990)
+  priceNote           String?       // "Drive Away" | "Plus On-Road Costs" | "Negotiable"
+  odometerKm          Int
+  transmission        String        // Automatic | Manual | CVT
+  fuelType            String        // Petrol | Diesel | Hybrid | PHEV | EV
+  engineSizeCc        Int?
+  driveType           String        // FWD | RWD | AWD | 4WD | 2WD
+  colour              String
+  doors               Int?
+  seats               Int?
+  vin                 String        @unique
+  importStatus        String        // NZ New | Used Import | Ex-Lease
+  condition           String        // Excellent | Very Good | Good
+  features            String[]
+  /// JSON array of { url: string; alt: string; order: number }
+  images              Json          @default("[]")
+  description         String
+  status              VehicleStatus @default(AVAILABLE)
+  financeEligible     Boolean       @default(true)
+  inspectionReportUrl String?
+  locationId          String
+  location            Location      @relation(fields: [locationId], references: [id])
+  financeApplications FinanceApplication[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([locationId])
+  @@index([status])
+  @@index([year])
+  @@index([make, model])
 }

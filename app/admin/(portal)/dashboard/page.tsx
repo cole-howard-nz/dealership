@@ -141,50 +141,42 @@ export default async function DashboardPage() {
   const hasViewAll = hasPermission(permissions, "locations.viewall");
   const locationFilter = hasViewAll ? undefined : { in: locationIds };
 
-  // Phase 2 models (contactRequest, tradeInRequest, financeApplication, vehicle)
-  // don't exist in the Phase 1 schema yet. Cast to any so TypeScript doesn't
-  // complain — the optional chaining + .catch() already handles runtime absence.
-  const db = prisma as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  // Fetch counts in parallel for each permitted section
-  const [contactNew, contactOpen, tradeInNew, tradeInOpen, financeNew, financeOpen, vehicleCounts, recentActivity] =
+  const [contactNew, contactOpen, tradeInNew, tradeInOpen, financeNew, financeOpen, vehicleGrouped, recentActivity] =
     await Promise.all([
       // Contact
       hasPermission(permissions, "contact.view")
-        ? db.contactRequest?.count({ where: { status: "NEW", locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.contactRequest.count({ where: { status: "NEW", locationId: locationFilter } })
+        : 0,
       hasPermission(permissions, "contact.view")
-        ? db.contactRequest?.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.contactRequest.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } })
+        : 0,
       // Trade-in
       hasPermission(permissions, "tradein.view")
-        ? db.tradeInRequest?.count({ where: { status: "NEW", locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.tradeInRequest.count({ where: { status: "NEW", locationId: locationFilter } })
+        : 0,
       hasPermission(permissions, "tradein.view")
-        ? db.tradeInRequest?.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.tradeInRequest.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } })
+        : 0,
       // Finance
       hasPermission(permissions, "finance.view")
-        ? db.financeApplication?.count({ where: { status: "NEW", locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.financeApplication.count({ where: { status: "NEW", locationId: locationFilter } })
+        : 0,
       hasPermission(permissions, "finance.view")
-        ? db.financeApplication?.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } }).catch(() => 0) ?? Promise.resolve(0)
-        : Promise.resolve(0),
+        ? prisma.financeApplication.count({ where: { status: { in: ["NEW", "IN_PROGRESS", "AWAITING_RESPONSE"] }, locationId: locationFilter } })
+        : 0,
       // Vehicles
       hasPermission(permissions, "inventory.view")
-        ? db.vehicle?.groupBy({ by: ["status"], where: { locationId: locationFilter }, _count: { _all: true } }).catch(() => []) ?? Promise.resolve([])
-        : Promise.resolve([]),
-      // Audit log (recent activity) — AuditLog exists in Phase 1 schema
+        ? prisma.vehicle.groupBy({ by: ["status"], where: { locationId: locationFilter }, _count: { _all: true } })
+        : [],
+      // Audit log (recent activity)
       prisma.auditLog.findMany({
         where: hasViewAll ? undefined : { locationId: { in: locationIds } },
         orderBy: { createdAt: "desc" },
         take: 15,
         include: { actor: { select: { name: true } } },
-      }).catch(() => []),
+      }),
     ]);
 
-  // Vehicle stat helpers
-  const vehicleGrouped = vehicleCounts as Array<{ status: string; _count: { _all: number } }>;
   const listedCount = vehicleGrouped.filter((g) => g.status === "AVAILABLE").reduce((acc, g) => acc + g._count._all, 0);
   const soldCount = vehicleGrouped.filter((g) => g.status === "SOLD").reduce((acc, g) => acc + g._count._all, 0);
   const pendingCount = vehicleGrouped.filter((g) => g.status === "PENDING").reduce((acc, g) => acc + g._count._all, 0);
@@ -197,7 +189,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-screen-xl">
-      {/* Page heading */}
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
           Dashboard
@@ -207,7 +198,6 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Summary cards */}
       {hasAnyCard && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {hasPermission(permissions, "contact.view") && (
@@ -249,7 +239,7 @@ export default async function DashboardPage() {
               icon={Package}
               newCount={0}
               openCount={listedCount}
-              extraLabel={`Sold · Pending`}
+              extraLabel="Sold · Pending"
               extraValue={`${soldCount} · ${pendingCount}`}
               color="#5B5F6B"
             />
@@ -257,7 +247,6 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Recent activity */}
       <div
         className="rounded-xl border bg-white shadow-sm"
         style={{ borderColor: "#E4E5E8" }}
@@ -278,7 +267,7 @@ export default async function DashboardPage() {
           </a>
         </div>
         <div className="px-5 divide-y-0">
-          {(recentActivity as Array<{ id: string; actor: { name: string } | null; action: string; entityType: string; entityId: string; createdAt: Date }>).length === 0 ? (
+          {recentActivity.length === 0 ? (
             <div className="py-12 text-center">
               <Clock className="h-8 w-8 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
               <p className="text-sm" style={{ color: "#5B5F6B" }}>
@@ -286,7 +275,7 @@ export default async function DashboardPage() {
               </p>
             </div>
           ) : (
-            (recentActivity as Array<{ id: string; actor: { name: string } | null; action: string; entityType: string; entityId: string; createdAt: Date }>).map((entry) => (
+            recentActivity.map((entry) => (
               <ActivityItem
                 key={entry.id}
                 actor={entry.actor?.name ?? null}

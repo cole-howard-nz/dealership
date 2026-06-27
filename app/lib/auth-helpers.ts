@@ -60,6 +60,7 @@ export async function getUserLocationFilter(): Promise<string[] | null> {
 // ─── Audit log helper ─────────────────────────────────────────────────────────
 
 import { prisma } from "./prisma";
+import { type Prisma } from "@prisma/client";
 
 interface LogActionParams {
   actorId: string;
@@ -67,6 +68,7 @@ interface LogActionParams {
   entityType: string;
   entityId: string;
   locationId?: string;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export async function logAction({
@@ -75,6 +77,7 @@ export async function logAction({
   entityType,
   entityId,
   locationId,
+  metadata,
 }: LogActionParams) {
   await prisma.auditLog.create({
     data: {
@@ -83,6 +86,7 @@ export async function logAction({
       entityType,
       entityId,
       locationId,
+      metadata,
     },
   });
 }
