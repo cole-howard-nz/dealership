@@ -35,6 +35,13 @@ const TEAM = [
   { name: "Marcus Chen", role: "Head Inspector", bio: "Qualified automotive engineer with a decade of pre-purchase inspection experience. Marcus signs off every vehicle before it's listed." },
 ];
 
+const HERO_STATS = [
+  { value: "100%", label: "of vehicles independently inspected before listing" },
+  { value: "5 Step", label: "inspection process, no exceptions" },
+  { value: "NZ Wide", label: "delivery on every vehicle we sell" },
+  { value: "Same Day", label: "finance pre-approval for most applicants" },
+];
+
 export default function AboutPage() {
   return (
     <div>
@@ -56,20 +63,18 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="about-hero-stats-wrap">
-            <div className="about-hero-stats">
-              {[
-                { stat: "100%", label: "of vehicles independently inspected" },
-                { stat: "5 Step", label: "inspection before any listing goes live" },
-                { stat: "NZ Wide", label: "delivery on every vehicle we sell" },
-                { stat: "No Pressure", label: "finance — get pre-approved before you visit" },
-              ].map(({ stat, label }) => (
-                <div key={stat} className="about-stat-card">
-                  <p className="about-stat-value">{stat}</p>
-                  <p className="about-stat-label">{label}</p>
+          {/* ── Redesigned RHS: ruled stat list ── */}
+          <div className="about-hero-stats-col" aria-label="Key facts">
+            {HERO_STATS.map((s, i) => (
+              <div key={s.value} className="about-stat-row">
+                <div className="about-stat-rule" aria-hidden="true" />
+                <div className="about-stat-inner">
+                  <span className="about-stat-value">{s.value}</span>
+                  <span className="about-stat-label">{s.label}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+            <div className="about-stat-rule about-stat-rule--last" aria-hidden="true" />
           </div>
         </div>
       </section>
@@ -169,6 +174,7 @@ export default function AboutPage() {
       </section>
 
       <style>{`
+        /* ── Hero ── */
         .about-hero {
           background: var(--color-navy);
           padding: 5rem 0 4rem;
@@ -177,11 +183,11 @@ export default function AboutPage() {
         .about-hero-inner {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 3rem;
+          gap: 3.5rem;
           align-items: center;
         }
         @media (min-width: 1024px) {
-          .about-hero-inner { grid-template-columns: 1fr 1fr; }
+          .about-hero-inner { grid-template-columns: 1fr 1fr; gap: 5rem; }
         }
         .about-h1 {
           font-family: var(--font-sora), sans-serif;
@@ -199,42 +205,47 @@ export default function AboutPage() {
           max-width: 480px;
           margin-bottom: 2rem;
         }
-        .about-hero-stats-wrap {
-          border-radius: 12px;
-          overflow: hidden;
-          aspect-ratio: 4/3;
-          border: 1px solid rgba(255,255,255,0.1);
-          display: grid;
-        }
-        .about-hero-stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: 1fr 1fr;
-          gap: 0;
-          width: 100%;
-          height: 100%;
-        }
-        .about-stat-card {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
+
+        /* ── Stat list (RHS) ── */
+        .about-hero-stats-col {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          padding: 1.75rem;
+          width: 100%;
+        }
+        .about-stat-rule {
+          height: 1px;
+          background: rgba(255,255,255,0.12);
+          width: 100%;
+        }
+        .about-stat-rule--last {
+          /* closing rule at bottom */
+        }
+        .about-stat-row {
+          display: flex;
+          flex-direction: column;
+        }
+        .about-stat-inner {
+          display: flex;
+          align-items: baseline;
+          gap: 1.25rem;
+          padding: 1.25rem 0;
         }
         .about-stat-value {
           font-family: var(--font-sora), sans-serif;
-          font-size: 1.5rem;
+          font-size: clamp(1.5rem, 3vw, 2rem);
           font-weight: 700;
           color: #E15A2C;
-          margin: 0 0 0.25rem;
+          white-space: nowrap;
+          flex-shrink: 0;
+          min-width: 6rem;
         }
         .about-stat-label {
-          font-size: 0.8rem;
-          color: rgba(255,255,255,0.6);
-          margin: 0;
-          line-height: 1.4;
+          font-size: 0.85rem;
+          line-height: 1.45;
+          color: rgba(255,255,255,0.55);
         }
+
+        /* ── Buttons ── */
         .about-btn-primary {
           display: inline-flex;
           align-items: center;
@@ -266,6 +277,8 @@ export default function AboutPage() {
           color: #fff;
           background: rgba(255,255,255,0.05);
         }
+
+        /* ── CTA band ── */
         .about-cta-section {
           padding: 5rem 0;
           background: var(--color-bg);

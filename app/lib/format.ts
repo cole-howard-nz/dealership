@@ -6,5 +6,8 @@ export function formatOdometer(km: number) {
   return `${new Intl.NumberFormat("en-NZ").format(km)} km`;
 }
 
-export const NZ_PHONE_REGEX = /^(\+64\s?\d{1,2}\s?\d{3}\s?\d{3,4}|0\d{1,2}\s?\d{3}\s?\d{3,4})$/;
+// Accepts NZ mobile/landline in common formats, e.g.:
+//   0210 834 3645 · 021834364 · +64 21 834 3645 · +6421834364
+// Strips all spaces before testing so spacing between digit groups doesn't matter.
+export const NZ_PHONE_REGEX = /^(\+64|0)\d{7,11}$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
