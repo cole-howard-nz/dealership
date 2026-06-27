@@ -65,6 +65,8 @@ export default function FinancePage() {
           </div>
           <div className="finance-hero-img-wrap">
             <Image
+              width={1920}
+              height={1080}
               src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=640&fit=crop&q=85"
               alt="Car finance paperwork and keys on a desk"
               className="finance-hero-img"

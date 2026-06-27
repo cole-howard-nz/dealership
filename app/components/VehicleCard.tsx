@@ -43,7 +43,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.variant ? " " + vehicle.variant : ""}`}
       >
         <div className="relative aspect-[3/2] bg-border">
-          {cover && <Image src={cover.url} alt={cover.alt} className={`h-full w-full object-cover ${isSold ? "opacity-50" : ""}`} loading="lazy" />}
+          {cover && <Image width={1920} height={1080} src={cover.url} alt={cover.alt} className={`h-full w-full object-cover ${isSold ? "opacity-50" : ""}`} loading="lazy" />}
           <div className="absolute top-3 left-3 flex gap-2">
             {isSold && <Badge tone="navy">Sold</Badge>}
             {isIncoming && (

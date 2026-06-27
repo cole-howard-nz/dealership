@@ -50,7 +50,7 @@ export function VehicleDetailPage() {
         <div className="lg:col-span-2">
           {/* Gallery */}
           <div className="relative rounded-lg overflow-hidden bg-border aspect-[3/2]">
-            <Image src={images[activeImage].url} alt={images[activeImage].alt} className="h-full w-full object-cover" />
+            <Image width={1920} height={1080} src={images[activeImage].url} alt={images[activeImage].alt} className="h-full w-full object-cover" />
             {images.length > 1 && (
               <>
                 <button onClick={() => setActiveImage((i) => (i - 1 + images.length) % images.length)}
@@ -73,7 +73,7 @@ export function VehicleDetailPage() {
               <button key={img.url + i} onClick={() => setActiveImage(i)}
                 aria-label={`View photo ${i + 1}: ${img.alt}`}
                 className={`shrink-0 h-16 w-24 rounded-sm overflow-hidden border-2 ${i === activeImage ? "border-accent" : "border-transparent"}`}>
-                <Image src={img.url} alt="" className="h-full w-full object-cover" />
+                <Image width={1920} height={1080} src={img.url} alt="" className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
@@ -206,7 +206,7 @@ export function VehicleDetailPage() {
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Fullscreen photo viewer">
           <button onClick={() => setLightbox(false)} aria-label="Close fullscreen" className="absolute top-4 right-4 text-white text-2xl">×</button>
-          <Image src={images[activeImage].url} alt={images[activeImage].alt} className="max-h-full max-w-full object-contain" />
+          <Image width={1920} height={1080} src={images[activeImage].url} alt={images[activeImage].alt} className="max-h-full max-w-full object-contain" />
         </div>
       )}
     </div>
