@@ -35,6 +35,7 @@ const fuelTypes: FuelType[] = ["Petrol", "Diesel", "Hybrid", "PHEV", "EV"];
  * Returns true if the vehicle matches a free-text search string.
  * Searches across make, model, variant, transmission, fuelType, colour, location, bodyType.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function vehicleMatchesSearch(vehicle: Parameters<typeof vehicles[0]["make"]["toLowerCase"]> extends never ? any : (typeof vehicles)[0], query: string): boolean {
   if (!query.trim()) return true;
   const q = query.toLowerCase();

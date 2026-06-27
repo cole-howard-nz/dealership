@@ -161,7 +161,7 @@ export function FinanceApplyPage() {
           </Button>
         </div>
         {step < STEPS.length - 1 && (
-          <p className="text-xs text-ink-muted text-center mt-2">Your progress is saved automatically — refreshing won't lose your answers.</p>
+          <p className="text-xs text-ink-muted text-center mt-2">Your progress is saved automatically — refreshing won&apos;t lose your answers.</p>
         )}
       </form>
     </div>

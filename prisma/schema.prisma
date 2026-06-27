@@ -1,0 +1,138 @@
+// Northbridge Motors — Staff Portal
+// Prisma schema for Phase 1: Auth shell, roles, locations, sessions, audit log
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum RequestStatus {
+  NEW
+  IN_PROGRESS
+  AWAITING_RESPONSE
+  RESOLVED
+  DECLINED
+  CLOSED
+}
+
+// ─── Role & Permissions ───────────────────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  /// true = Owner; cannot be deleted or have permissions modified
+  isSystem    Boolean  @default(false)
+  /// Array of permission keys e.g. ["contact.view", "tradein.update"]
+  permissions String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+}
+
+// ─── Location ─────────────────────────────────────────────────────────────────
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "Wellington Yard"
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    UserLocation[]
+  auditLog AuditLog[]
+}
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String?   // null if using OAuth (future)
+  roleId       String
+  role         Role      @relation(fields: [roleId], references: [id])
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  locations UserLocation[]
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  // Invitation fields
+  inviteToken       String?   @unique
+  inviteTokenExpiry DateTime?
+  inviteAccepted    Boolean   @default(false)
+  invitedById       String?
+}
+
+// Join table: user ↔ location (many-to-many)
+model UserLocation {
+  userId     String
+  locationId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([userId, locationId])
+}
+
+// ─── Session (NextAuth database sessions) ────────────────────────────────────
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Active location context stored on the session
+  activeLocationId String?
+  createdAt    DateTime @default(now())
+}
+
+// Required by NextAuth for email verification (not used in Phase 1 but required
+// for the adapter to initialise cleanly)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Password Reset ───────────────────────────────────────────────────────────
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  // null for system actions
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String   // e.g. "STATUS_CHANGED", "NOTE_ADDED", "USER_CREATED"
+  entityType String   // e.g. "TradeInRequest", "User"
+  entityId   String
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
+  /// Captures before/after values. Personal data must NOT be stored here.
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}

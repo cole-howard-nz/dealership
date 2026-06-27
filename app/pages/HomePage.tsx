@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Zap, Car, Bus, Truck, ShieldCheck, CreditCard } from "lucide-react";
 import { vehicles } from "../data/vehicles";
 import { VehicleCard } from "../components/VehicleCard";
@@ -41,7 +42,7 @@ export function HomePage() {
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}
       <section className="hero-section">
         <div className="hero-bg">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&h=1080&fit=crop&q=85"
             alt="JDM sports car — Northbridge Motors performance inventory"
             className="hero-img"
@@ -152,7 +153,7 @@ export function HomePage() {
           <div className='text-center mb-12'>
             <h2 className="section-title text-center mb-3">Why buy from us</h2>
             <p className="section-sub mx-auto">
-              We're not the biggest dealer in NZ. We're the one where nothing is hidden in the footnotes.
+              We&apos;re not the biggest dealer in NZ. We&apos;re the one where nothing is hidden in the footnotes.
             </p>
           </div>
           <div className="trust-grid">
@@ -179,7 +180,7 @@ export function HomePage() {
             <div className="eyebrow-dark">Finance</div>
             <h2 className="section-title">Work out your weekly before you come in</h2>
             <p className="section-body">
-              No email required. No sales call triggered. Just a genuine repayment estimate based on the vehicle price, your deposit, and the term you want. When you're ready to apply, it takes about 5 minutes online.
+              No email required. No sales call triggered. Just a genuine repayment estimate based on the vehicle price, your deposit, and the term you want. When you&apos;re ready to apply, it takes about 5 minutes online.
             </p>
             <Link href="/finance" className="inline-link">
               Learn about our finance options →
@@ -196,7 +197,7 @@ export function HomePage() {
         <div className="container-wide px-4">
           <div className="tradein-split">
             <div className="tradein-img-wrap">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&h=600&fit=crop&q=85"
                 alt="Handing over car keys — trade-in valuation"
                 className="tradein-img"
@@ -206,11 +207,11 @@ export function HomePage() {
               <div className="eyebrow-dark">Trade-in</div>
               <h2 className="section-title">Already have a car?</h2>
               <p className="section-body">
-                Tell us what you're driving and we'll come back with a straight number — usually within a few hours. No obligation to buy from us, and no hard sell if you decide not to trade.
+                Tell us what you&apos;re driving and we&apos;ll come back with a straight number — usually within a few hours. No obligation to buy from us, and no hard sell if you decide not to trade.
               </p>
               <ul className="tradein-list">
                 <li>Takes about 2 minutes to fill in</li>
-                <li>We'll reply the same day</li>
+                <li>We&apos;ll reply the same day</li>
                 <li>Price holds for 7 days</li>
               </ul>
               <Link href="/trade-in" className="btn-primary-dark mt-6 inline-flex">

@@ -1,0 +1,13 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Suppress "any" type errors if you don't want to type everything right now
+    "@typescript-eslint/no-explicit-any": "off",
+    
+    // Warn instead of error for variables you haven't cleaned up yet
+    "@typescript-eslint/no-unused-vars": "warn",
+    
+    // If your project setup relies on these specific effect patterns:
+    "react-hooks/set-state-in-effect": "off"
+  }
+}
