@@ -1,11 +1,32 @@
 import type { Metadata } from "next";
-import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { prisma } from "../../../../lib/prisma";
+import { resetPassword } from "../actions";
+import { ResetPasswordForm } from "./ResetPasswordForm";
+import Link from "next/link";
+import { XCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Reset Password — Northbridge Motors Staff Portal",
+  title: "Set New Password — Northbridge Motors Staff Portal",
 };
 
-export default function ForgotPasswordPage() {
+interface PageProps {
+  params: Promise<{ token: string }>;
+}
+
+export default async function ResetPasswordPage({ params }: PageProps) {
+  const { token } = await params;
+
+  const record = await prisma.passwordResetToken.findFirst({
+    where: {
+      token,
+      used: false,
+      expires: { gt: new Date() },
+    },
+    select: { id: true },
+  });
+
+  const boundAction = resetPassword.bind(null, token);
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center"
@@ -46,17 +67,39 @@ export default function ForgotPasswordPage() {
               className="text-2xl font-bold text-white mb-1"
               style={{ fontFamily: "var(--font-sora, sans-serif)", letterSpacing: "-0.02em" }}
             >
-              Reset password
+              Set new password
             </h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-              We&apos;ll email you a link to set a new one.
+              Choose a strong password of at least 12 characters.
             </p>
           </div>
 
           <div style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.06)", margin: "0 2rem" }} />
 
           <div className="px-8 py-7">
-            <ForgotPasswordForm />
+            {!record ? (
+              <div className="flex flex-col items-center gap-4 text-center py-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "rgba(211,58,44,0.12)" }}>
+                  <XCircle className="h-6 w-6" style={{ color: "#D33A2C" }} />
+                </div>
+                <div>
+                  <p className="font-semibold text-white mb-1">Link expired or invalid</p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    This reset link has expired or already been used. Request a new one below.
+                  </p>
+                </div>
+                <Link
+                  href="/admin/login/forgot-password"
+                  className="mt-2 h-11 px-6 rounded-xl font-semibold text-sm flex items-center"
+                  style={{ backgroundColor: "#E15A2C", color: "#fff" }}
+                >
+                  Request new link
+                </Link>
+              </div>
+            ) : (
+              <ResetPasswordForm boundAction={boundAction} />
+            )}
           </div>
         </div>
       </div>

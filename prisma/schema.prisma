@@ -43,17 +43,27 @@ model Role {
   users User[]
 }
 
+// ─── System Settings (key-value store) ───────────────────────────────────────
+
+model Setting {
+  key       String   @id
+  /// JSON-encoded string value
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Location ─────────────────────────────────────────────────────────────────
 
 model Location {
-  id        String   @id @default(cuid())
-  name      String   // e.g. "Wellington Yard"
-  address   String?
-  phone     String?
-  email     String?  // for Phase 4 notifications
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  name                String   // e.g. "Wellington Yard"
+  address             String?
+  phone               String?
+  email               String?  // notification target email
+  notifyOnNewRequest  Boolean  @default(true) // send to location email on new request
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   users               UserLocation[]
   auditLog            AuditLog[]
@@ -76,11 +86,14 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   lastLoginAt  DateTime?
+  /// Per-type notification opt-outs. Keys: "contact.new", "tradein.new", "finance.new". false = opted out; absent = default on.
+  notificationPreferences Json     @default("{}")
 
-  locations UserLocation[]
-  sessions  Session[]
-  auditLogs AuditLog[]
-  notes     Note[]
+  locations          UserLocation[]
+  sessions           Session[]
+  auditLogs          AuditLog[]
+  notes              Note[]
+  passwordResetTokens PasswordResetToken[]
 
   // Assigned requests (back-relations)
   assignedContactRequests     ContactRequest[]     @relation("ContactRequestAssignee")
@@ -135,6 +148,7 @@ model VerificationToken {
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique
   expires   DateTime
   used      Boolean  @default(false)

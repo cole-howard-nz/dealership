@@ -6,6 +6,7 @@ import { randomBytes } from "crypto";
 import { prisma } from "../../../lib/prisma";
 import { requirePermission, logAction } from "../../../lib/auth-helpers";
 import { hasPermission } from "../../../lib/permissions";
+import { sendInviteEmail } from "../../../lib/email";
 
 interface ActionResult {
   error: string | null;
@@ -79,6 +80,9 @@ export async function inviteStaff(formData: FormData): Promise<ActionResult & { 
     entityId: newUser.id,
     metadata: { email: newUser.email, roleId: parsed.data.roleId },
   });
+
+  // Send invite email (non-blocking; link is also shown in UI as fallback)
+  await sendInviteEmail(newUser.email, newUser.name, inviteToken);
 
   revalidatePath("/admin/staff");
   return { error: null, inviteToken };
@@ -256,6 +260,13 @@ export async function resendInvite(userId: string): Promise<ActionResult & { inv
     entityType: "User",
     entityId: userId,
   });
+
+  // Re-send invite email
+  const updatedUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true },
+  });
+  if (updatedUser) await sendInviteEmail(updatedUser.email, updatedUser.name, inviteToken);
 
   revalidatePath(`/admin/staff/${userId}`);
   return { error: null, inviteToken };
