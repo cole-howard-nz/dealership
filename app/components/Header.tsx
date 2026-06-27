@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Phone, Menu, X, Heart, GitCompare } from "lucide-react";
+import { Phone, Menu, X, Heart, GitCompare, LayoutDashboard } from "lucide-react";
 import { useShortlist } from "../hooks/useShortlist";
 
 const DEALER_PHONE = "+6491234567";
@@ -19,7 +19,12 @@ const navLinks = [
   { to: "/contact", label: "Contact" },
 ];
 
-export function Header() {
+interface HeaderProps {
+  /** Resolved server-side in layout.tsx — true when the visitor has an active admin session. */
+  isAdmin?: boolean;
+}
+
+export function Header({ isAdmin = false }: HeaderProps) {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -74,6 +79,16 @@ export function Header() {
           <a href={`tel:${DEALER_PHONE}`} className="flex items-center gap-2 text-sm font-semibold hover:text-accent">
             <Phone className="h-4 w-4" aria-hidden="true" /> {DEALER_PHONE_DISPLAY}
           </a>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Go to admin dashboard"
+            >
+              <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+              Dashboard
+            </Link>
+          )}
           <Link
             href="/inventory"
             className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover transition-colors"
@@ -106,6 +121,15 @@ export function Header() {
           <a href={`tel:${DEALER_PHONE}`} className="flex items-center gap-2 text-base font-semibold text-accent">
             <Phone className="h-4 w-4" /> Call {DEALER_PHONE_DISPLAY}
           </a>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 text-base font-semibold text-accent"
+            >
+              <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+            </Link>
+          )}
         </nav>
       )}
     </header>
