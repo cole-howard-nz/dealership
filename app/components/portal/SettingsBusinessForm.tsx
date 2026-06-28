@@ -9,6 +9,7 @@ interface Props {
     businessName: string;
     businessPhone: string;
     businessAddress: string;
+    publicSiteUrl: string;
   };
 }
 
@@ -72,6 +73,19 @@ export function SettingsBusinessForm({ action, defaultValues }: Props) {
           className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 resize-none"
           style={inputStyle}
         />
+      </div>
+      <div>
+        <label htmlFor="publicSiteUrl" className={labelClass} style={{ color: "#13151A" }}>Public site URL</label>
+        <input
+          id="publicSiteUrl"
+          name="publicSiteUrl"
+          type="url"
+          defaultValue={defaultValues.publicSiteUrl}
+          placeholder="https://northbridgemotors.co.nz"
+          className={inputClass}
+          style={inputStyle}
+        />
+        <p className="text-xs mt-1" style={{ color: "#9CA3AF" }}>Used to generate QR codes for vehicle listings.</p>
       </div>
 
       <div className="flex justify-end">

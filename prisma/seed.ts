@@ -20,6 +20,8 @@ const ALL_PERMISSIONS = [
   "tradein.update",
   "finance.view",
   "finance.update",
+  "testdrive.view",
+  "testdrive.update",
   "inventory.view",
   "inventory.create",
   "inventory.edit",
@@ -48,6 +50,8 @@ const SALES_PERMISSIONS = [
   "tradein.update",
   "finance.view",
   "finance.update",
+  "testdrive.view",
+  "testdrive.update",
   "inventory.view",
   "inventory.sold",
 ];
@@ -55,6 +59,8 @@ const SALES_PERMISSIONS = [
 const VIEWER_PERMISSIONS = [
   "contact.view",
   "tradein.view",
+  "finance.view",
+  "testdrive.view",
   "inventory.view",
 ];
 
@@ -101,10 +107,7 @@ async function main() {
   for (const role of DEFAULT_ROLES) {
     const created = await prisma.role.upsert({
       where: { name: role.name },
-      update: {
-        // Only update non-system role permissions; never touch Owner permissions
-        ...(role.isSystem ? {} : { permissions: role.permissions }),
-      },
+      update: { permissions: role.permissions },
       create: {
         name: role.name,
         isSystem: role.isSystem,

@@ -19,6 +19,7 @@ import {
   LogOut,
   Menu,
   ChevronDown,
+  CalendarCheck,
 } from "lucide-react";
 import { hasPermission, type Permission } from "../../lib/permissions";
 
@@ -56,9 +57,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Requests",
     items: [
-      { href: "/admin/requests/contact", label: "Contact", icon: MessageSquare, permission: "contact.view" },
-      { href: "/admin/requests/trade-in", label: "Trade-In", icon: Car, permission: "tradein.view" },
-      { href: "/admin/requests/finance", label: "Finance", icon: CreditCard, permission: "finance.view" },
+      { href: "/admin/requests/contact", label: "Contact", icon: MessageSquare, permission: "contact.view", badge: true },
+      { href: "/admin/requests/trade-in", label: "Trade-In", icon: Car, permission: "tradein.view", badge: true },
+      { href: "/admin/requests/finance", label: "Finance", icon: CreditCard, permission: "finance.view", badge: true },
+      { href: "/admin/requests/test-drive", label: "Test Drives", icon: CalendarCheck, permission: "testdrive.view", badge: true },
     ],
   },
   {
@@ -202,11 +204,12 @@ export function PortalShell({ user, children }: PortalShellProps) {
       const loc = activeLocationId === "all" ? "" : `?loc=${activeLocationId}`;
       const res = await fetch(`/api/portal/badge-counts${loc}`, { cache: "no-store" });
       if (!res.ok) return;
-      const data = (await res.json()) as { contact: number; tradein: number; finance: number };
+      const data = (await res.json()) as { contact: number; tradein: number; finance: number; testdrive: number };
       setBadgeCounts({
         "/admin/requests/contact": data.contact,
         "/admin/requests/trade-in": data.tradein,
         "/admin/requests/finance": data.finance,
+        "/admin/requests/test-drive": data.testdrive,
       });
     } catch {
       // silently ignore — badges will just show 0

@@ -15,6 +15,9 @@ export const PERMISSIONS = {
   // Finance applications
   FINANCE_VIEW: "finance.view",
   FINANCE_UPDATE: "finance.update",
+  // Test drive bookings
+  TESTDRIVE_VIEW: "testdrive.view",
+  TESTDRIVE_UPDATE: "testdrive.update",
   // Inventory
   INVENTORY_VIEW: "inventory.view",
   INVENTORY_CREATE: "inventory.create",
@@ -53,6 +56,7 @@ export const PORTAL_NAV: NavItem[] = [
   { href: "/admin/requests/contact", label: "Contact Requests", permission: "contact.view", group: "requests" },
   { href: "/admin/requests/trade-in", label: "Trade-In Requests", permission: "tradein.view", group: "requests" },
   { href: "/admin/requests/finance", label: "Finance Applications", permission: "finance.view", group: "requests" },
+  { href: "/admin/requests/test-drive", label: "Test Drive Bookings", permission: "testdrive.view", group: "requests" },
   // Operations
   { href: "/admin/inventory", label: "Inventory", permission: "inventory.view", group: "operations" },
   // Staff & system

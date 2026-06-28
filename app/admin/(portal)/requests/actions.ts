@@ -15,13 +15,13 @@ interface ActionResult {
 
 // ─── Entity type → table mapping ──────────────────────────────────────────────
 
-type EntityType = "ContactRequest" | "TradeInRequest" | "FinanceApplication";
+type EntityType = "ContactRequest" | "TradeInRequest" | "FinanceApplication" | "TestDriveBooking";
 
 const ENTITY_META: Record<
   EntityType,
   {
-    viewPermission: "contact.view" | "tradein.view" | "finance.view";
-    updatePermission: "contact.update" | "tradein.update" | "finance.update";
+    viewPermission: "contact.view" | "tradein.view" | "finance.view" | "testdrive.view";
+    updatePermission: "contact.update" | "tradein.update" | "finance.update" | "testdrive.update";
     revalidatePath: string;
     findUnique: (id: string) => Promise<{ locationId: string } | null>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +54,15 @@ const ENTITY_META: Record<
       prisma.financeApplication.findUnique({ where: { id }, select: { locationId: true } }),
     update: (id, data) =>
       prisma.financeApplication.update({ where: { id }, data }).then(() => undefined),
+  },
+  TestDriveBooking: {
+    viewPermission: "testdrive.view",
+    updatePermission: "testdrive.update",
+    revalidatePath: "/admin/requests/test-drive",
+    findUnique: (id) =>
+      prisma.testDriveBooking.findUnique({ where: { id }, select: { locationId: true } }),
+    update: (id, data) =>
+      prisma.testDriveBooking.update({ where: { id }, data }).then(() => undefined),
   },
 };
 
@@ -215,6 +224,8 @@ export async function addNote(
         ? { ...noteBase, contactRequestId: id }
         : type === "TradeInRequest"
         ? { ...noteBase, tradeInRequestId: id }
+        : type === "TestDriveBooking"
+        ? { ...noteBase, testDriveBookingId: id }
         : { ...noteBase, financeApplicationId: id },
   });
 
@@ -246,6 +257,7 @@ export async function editNote(
       contactRequestId: true,
       tradeInRequestId: true,
       financeApplicationId: true,
+      testDriveBookingId: true,
     },
   });
 
@@ -261,9 +273,11 @@ export async function editNote(
     ? "ContactRequest"
     : note.tradeInRequestId
     ? "TradeInRequest"
+    : note.testDriveBookingId
+    ? "TestDriveBooking"
     : "FinanceApplication";
   const entityId =
-    note.contactRequestId ?? note.tradeInRequestId ?? note.financeApplicationId ?? "";
+    note.contactRequestId ?? note.tradeInRequestId ?? note.testDriveBookingId ?? note.financeApplicationId ?? "";
   revalidatePath(`${ENTITY_META[entityType].revalidatePath}/${entityId}`);
 
   return { error: null };
@@ -281,6 +295,7 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
       contactRequestId: true,
       tradeInRequestId: true,
       financeApplicationId: true,
+      testDriveBookingId: true,
     },
   });
 
@@ -290,6 +305,8 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
     ? "ContactRequest"
     : note.tradeInRequestId
     ? "TradeInRequest"
+    : note.testDriveBookingId
+    ? "TestDriveBooking"
     : "FinanceApplication";
   const meta = ENTITY_META[entityType];
 
@@ -298,7 +315,7 @@ export async function deleteNote(noteId: string): Promise<ActionResult> {
   if (!isAuthor && !hasUpdatePerm) return { error: "Permission denied." };
 
   const entityId =
-    note.contactRequestId ?? note.tradeInRequestId ?? note.financeApplicationId ?? "";
+    note.contactRequestId ?? note.tradeInRequestId ?? note.testDriveBookingId ?? note.financeApplicationId ?? "";
 
   await prisma.note.delete({ where: { id: noteId } });
   revalidatePath(`${meta.revalidatePath}/${entityId}`);

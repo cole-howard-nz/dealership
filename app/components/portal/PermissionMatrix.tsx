@@ -27,6 +27,13 @@ const GROUPS = [
     ],
   },
   {
+    label: "Test Drive Bookings",
+    permissions: [
+      { key: "testdrive.view", label: "View" },
+      { key: "testdrive.update", label: "Update / Assign" },
+    ],
+  },
+  {
     label: "Inventory",
     permissions: [
       { key: "inventory.view", label: "View" },

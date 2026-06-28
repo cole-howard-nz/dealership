@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Calendar } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import { TextField, SelectField, CheckboxField } from "../../components/FormFields";
 import { Button } from "../../components/Button";
 import { EMAIL_REGEX, NZ_PHONE_REGEX } from "../../lib/format";
@@ -31,22 +31,56 @@ function BookTestDriveForm() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
 
+  // Load locations
   useEffect(() => {
     fetch("/api/public/locations")
       .then((r) => r.json())
       .then((data: Location[]) => {
         setLocations(data);
-        if (data.length === 1) setForm((f) => ({ ...f, locationId: data[0].id }));
+        // Auto-select single location only when no vehicle is selected (vehicle provides location)
+        if (data.length === 1 && !form.vehicleId) {
+          setForm((f) => ({ ...f, locationId: data[0].id }));
+        }
       })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Load vehicles
+  useEffect(() => {
     fetch("/api/public/vehicles")
       .then((r) => r.json())
-      .then((data: Vehicle[]) => setAvailableVehicles(data.filter((v) => v.status === "Available")))
+      .then((data: Vehicle[]) => {
+        const available = data.filter((v) => v.status === "Available");
+        setAvailableVehicles(available);
+      })
       .catch(() => {});
   }, []);
 
+  // When vehicles load, derive locationId from pre-selected vehicle
+  useEffect(() => {
+    if (!preselected || availableVehicles.length === 0) return;
+    const vehicle = availableVehicles.find((v) => v.id === preselected);
+    if (vehicle?.locationId) {
+      setForm((f) => ({ ...f, locationId: vehicle.locationId! }));
+    }
+  }, [preselected, availableVehicles]);
+
   const today = new Date().toISOString().split("T")[0];
+  const selectedVehicle = form.vehicleId
+    ? availableVehicles.find((v) => v.id === form.vehicleId) ?? null
+    : null;
+
+  function handleVehicleChange(vehicleId: string) {
+    const vehicle = vehicleId ? availableVehicles.find((v) => v.id === vehicleId) : null;
+    setForm((f) => ({
+      ...f,
+      vehicleId,
+      // Derive location from vehicle if available; fall back to single-location auto-select or clear
+      locationId: vehicle?.locationId
+        ?? (locations.length === 1 ? locations[0].id : ""),
+    }));
+  }
 
   function validate(): boolean {
     const e: Record<string, string> = {};
@@ -92,16 +126,18 @@ function BookTestDriveForm() {
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-surface border border-border rounded-xl p-6" noValidate>
+          {/* Vehicle selector */}
           <SelectField
             label="Vehicle (optional)"
             value={form.vehicleId}
-            onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
+            onChange={(e) => handleVehicleChange(e.target.value)}
             options={availableVehicles.map((v) => ({
               label: `${v.year} ${v.make} ${v.model}${v.variant ? " " + v.variant : ""}`,
               value: v.id,
             }))}
           />
 
+          {/* Contact */}
           <div className="grid sm:grid-cols-2 gap-5">
             <TextField label="Full name" required value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })} error={errors.name} autoComplete="name" />
@@ -112,6 +148,7 @@ function BookTestDriveForm() {
           <TextField label="Email" type="email" required value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })} error={errors.email} autoComplete="email" />
 
+          {/* Date / time */}
           <div className="grid sm:grid-cols-2 gap-5">
             <TextField label="Preferred date" type="date" required min={today} value={form.preferredDate}
               onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} error={errors.preferredDate} />
@@ -125,7 +162,20 @@ function BookTestDriveForm() {
               error={errors.preferredTime} />
           </div>
 
-          {locations.length > 1 && (
+          {/* Location — derived from vehicle when one is selected and has a locationId */}
+          {selectedVehicle?.locationId ? (
+            <div
+              className="flex items-start gap-3 rounded-lg border px-4 py-3"
+              style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-surface)" }}
+            >
+              <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-accent" aria-hidden="true" />
+              <p className="text-sm text-ink-muted">
+                This vehicle is located at{" "}
+                <span className="font-semibold text-ink">{selectedVehicle.location}</span>.
+                Your test drive will be arranged there.
+              </p>
+            </div>
+          ) : locations.length > 1 ? (
             <SelectField
               label="Which location?"
               required
@@ -134,7 +184,7 @@ function BookTestDriveForm() {
               options={locations.map((l) => ({ label: l.name, value: l.id }))}
               error={errors.locationId}
             />
-          )}
+          ) : null}
 
           <CheckboxField
             label="I'll bring a valid NZ driver's licence to the test drive."

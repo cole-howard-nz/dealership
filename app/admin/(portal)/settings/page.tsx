@@ -58,6 +58,7 @@ export default async function SettingsPage() {
               businessName: settings.businessName,
               businessPhone: settings.businessPhone,
               businessAddress: settings.businessAddress,
+              publicSiteUrl: settings.publicSiteUrl,
             }}
           />
         </SectionCard>

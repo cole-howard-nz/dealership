@@ -14,6 +14,7 @@ const DEFAULTS = {
   businessName: "Northbridge Motors",
   businessPhone: "",
   businessAddress: "",
+  publicSiteUrl: "https://northbridgemotors.co.nz",
 } as const;
 
 type SettingKey = keyof typeof DEFAULTS;
@@ -35,6 +36,7 @@ export async function getAllSettings(): Promise<Record<SettingKey, string>> {
     businessName: map.businessName ?? DEFAULTS.businessName,
     businessPhone: map.businessPhone ?? DEFAULTS.businessPhone,
     businessAddress: map.businessAddress ?? DEFAULTS.businessAddress,
+    publicSiteUrl: map.publicSiteUrl ?? DEFAULTS.publicSiteUrl,
   };
 }
 

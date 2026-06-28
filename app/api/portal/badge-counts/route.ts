@@ -40,11 +40,12 @@ export async function GET(req: NextRequest) {
   }
   // canViewAll + loc "all" → no filter = see everything
 
-  const [contact, tradein, finance] = await Promise.all([
+  const [contact, tradein, finance, testdrive] = await Promise.all([
     prisma.contactRequest.count({ where: { ...locationFilter, status: "NEW" } }),
     prisma.tradeInRequest.count({ where: { ...locationFilter, status: "NEW" } }),
     prisma.financeApplication.count({ where: { ...locationFilter, status: "NEW" } }),
+    prisma.testDriveBooking.count({ where: { ...locationFilter, status: "NEW" } }),
   ]);
 
-  return Response.json({ contact, tradein, finance });
+  return Response.json({ contact, tradein, finance, testdrive });
 }

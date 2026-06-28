@@ -137,7 +137,12 @@ export function VehicleDetailClient({ vehicle, similar, locationId }: Props) {
               <p className="text-ink-muted mt-1">{vehicle.location} · VIN {vehicle.vin}</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold">{formatPrice(vehicle.price)}</p>
+              {vehicle.previousPrice && (
+                <p className="text-sm text-ink-muted line-through">{formatPrice(vehicle.previousPrice)}</p>
+              )}
+              <p className="text-3xl font-bold" style={vehicle.previousPrice ? { color: "#15803D" } : undefined}>
+                {formatPrice(vehicle.price)}
+              </p>
               {vehicle.priceNote && <p className="text-sm text-ink-muted">{vehicle.priceNote}</p>}
               <p className="text-sm text-success font-medium mt-1 flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Delivered anywhere in NZ
@@ -235,7 +240,7 @@ export function VehicleDetailClient({ vehicle, similar, locationId }: Props) {
 
         {/* CTA sidebar — desktop only */}
         <div className="hidden lg:block">
-          <div className="sticky top-24 bg-surface border border-border rounded-xl p-6">
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden bg-surface border border-border rounded-xl p-6" style={{ scrollbarWidth: "none" }}>
             {/* Save / Compare */}
             <div className="flex gap-2 mb-5">
               <button

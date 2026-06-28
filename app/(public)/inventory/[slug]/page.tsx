@@ -28,19 +28,28 @@ export default async function VehicleDetailPage({ params }: Props) {
     notFound();
   }
 
-  const similar = await prisma.vehicle.findMany({
-    where: {
-      status: { in: ["AVAILABLE", "PENDING"] },
-      bodyType: raw.bodyType,
-      id: { not: raw.id },
-    },
-    include: { location: { select: { name: true } } },
-    take: 2,
-  });
+  const [similar, latestPriceHistory] = await Promise.all([
+    prisma.vehicle.findMany({
+      where: {
+        status: { in: ["AVAILABLE", "PENDING"] },
+        bodyType: raw.bodyType,
+        id: { not: raw.id },
+      },
+      include: { location: { select: { name: true } } },
+      take: 2,
+    }),
+    prisma.priceHistory.findFirst({
+      where: { vehicleId: raw.id, oldPrice: { gt: raw.price } },
+      orderBy: { changedAt: "desc" },
+      select: { oldPrice: true },
+    }),
+  ]);
+
+  const previousPrice = latestPriceHistory?.oldPrice;
 
   return (
     <VehicleDetailClient
-      vehicle={mapPrismaVehicle(raw)}
+      vehicle={mapPrismaVehicle(raw, previousPrice)}
       similar={similar.map(mapPrismaVehicle)}
       locationId={raw.locationId}
     />
