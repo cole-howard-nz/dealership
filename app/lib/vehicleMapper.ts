@@ -14,7 +14,7 @@ function mapStatus(status: VehicleStatus): Vehicle["status"] {
   }
 }
 
-export function mapPrismaVehicle(v: PrismaVehicleWithLocation): Vehicle {
+export function mapPrismaVehicle(v: PrismaVehicleWithLocation, previousPrice?: number): Vehicle {
   return {
     id: v.id,
     slug: v.slug,
@@ -24,6 +24,7 @@ export function mapPrismaVehicle(v: PrismaVehicleWithLocation): Vehicle {
     year: v.year,
     bodyType: v.bodyType as Vehicle["bodyType"],
     price: v.price,
+    previousPrice: previousPrice !== undefined && previousPrice > v.price ? previousPrice : undefined,
     priceNote: (v.priceNote ?? undefined) as Vehicle["priceNote"],
     odometerKm: v.odometerKm,
     transmission: v.transmission as Vehicle["transmission"],
@@ -40,6 +41,7 @@ export function mapPrismaVehicle(v: PrismaVehicleWithLocation): Vehicle {
     images: (v.images as unknown as VehicleImage[]),
     description: v.description,
     location: v.location.name,
+    locationId: v.locationId,
     status: mapStatus(v.status),
     inspectionReportUrl: v.inspectionReportUrl ?? undefined,
     financeEligible: v.financeEligible,

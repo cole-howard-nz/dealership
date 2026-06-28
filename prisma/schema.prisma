@@ -1,5 +1,5 @@
 // Northbridge Motors — Staff Portal
-// Prisma schema — Phase 1 (auth/shell) + Phase 2 (request queues) + Phase 3 (inventory/staff/roles)
+// Prisma schema
 
 generator client {
   provider = "prisma-client-js"
@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -100,6 +101,10 @@ model User {
   assignedContactRequests     ContactRequest[]     @relation("ContactRequestAssignee")
   assignedTradeInRequests     TradeInRequest[]     @relation("TradeInRequestAssignee")
   assignedFinanceApplications FinanceApplication[] @relation("FinanceApplicationAssignee")
+  assignedTestDriveBookings   TestDriveBooking[]   @relation("TestDriveBookingAssignee")
+
+  // Price history (back-relation)
+  priceHistoryChanges PriceHistory[] @relation("PriceHistoryChanger")
 
   // Invitation fields
   inviteToken       String?   @unique
@@ -134,8 +139,7 @@ model Session {
   createdAt    DateTime @default(now())
 }
 
-// Required by NextAuth for email verification (not used in Phase 1 but required
-// for the adapter to initialise cleanly)
+// Required by NextAuth for email verification
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -272,7 +276,7 @@ model FinanceApplication {
   @@index([createdAt])
 }
 
-// Polymorphic internal notes — one of the three FK fields is set per row
+// Polymorphic internal notes — one FK is set per row
 model Note {
   id        String   @id @default(cuid())
   body      String
@@ -286,10 +290,13 @@ model Note {
   tradeInRequest       TradeInRequest?     @relation(fields: [tradeInRequestId], references: [id], onDelete: Cascade)
   financeApplicationId String?
   financeApplication   FinanceApplication? @relation(fields: [financeApplicationId], references: [id], onDelete: Cascade)
+  testDriveBookingId   String?
+  testDriveBooking     TestDriveBooking?   @relation(fields: [testDriveBookingId], references: [id], onDelete: Cascade)
 
   @@index([contactRequestId])
   @@index([tradeInRequestId])
   @@index([financeApplicationId])
+  @@index([testDriveBookingId])
 }
 
 // ─── Phase 5: Test drive bookings ─────────────────────────────────────────────
@@ -307,6 +314,9 @@ model TestDriveBooking {
   preferredTime    String        // "Morning" | "Afternoon" | "Evening"
   licenceConfirmed Boolean
   status           RequestStatus @default(NEW)
+  assignedToId     String?
+  assignedTo       User?         @relation("TestDriveBookingAssignee", fields: [assignedToId], references: [id])
+  notes            Note[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -317,43 +327,64 @@ model TestDriveBooking {
 // ─── Phase 3: Vehicle inventory ───────────────────────────────────────────────
 
 model Vehicle {
-  id                  String        @id @default(cuid())
+  id                      String        @id @default(cuid())
   /// URL slug — auto-generated from year/make/model, unique
-  slug                String        @unique
-  make                String
-  model               String
-  variant             String?
-  year                Int
-  bodyType            String        // Sedan | Hatchback | SUV | Ute | Van | Performance
-  price               Int           // NZD cents-free integer (e.g. 24990)
-  priceNote           String?       // "Drive Away" | "Plus On-Road Costs" | "Negotiable"
-  odometerKm          Int
-  transmission        String        // Automatic | Manual | CVT
-  fuelType            String        // Petrol | Diesel | Hybrid | PHEV | EV
-  engineSizeCc        Int?
-  driveType           String        // FWD | RWD | AWD | 4WD | 2WD
-  colour              String
-  doors               Int?
-  seats               Int?
-  vin                 String        @unique
-  importStatus        String        // NZ New | Used Import | Ex-Lease
-  condition           String        // Excellent | Very Good | Good
-  features            String[]
+  slug                    String        @unique
+  make                    String
+  model                   String
+  variant                 String?
+  year                    Int
+  bodyType                String        // Sedan | Hatchback | SUV | Ute | Van | Performance
+  price                   Int           // NZD cents-free integer (e.g. 24990)
+  priceNote               String?       // "Drive Away" | "Plus On-Road Costs" | "Negotiable"
+  odometerKm              Int
+  transmission            String        // Automatic | Manual | CVT
+  fuelType                String        // Petrol | Diesel | Hybrid | PHEV | EV
+  engineSizeCc            Int?
+  driveType               String        // FWD | RWD | AWD | 4WD | 2WD
+  colour                  String
+  doors                   Int?
+  seats                   Int?
+  vin                     String        @unique
+  importStatus            String        // NZ New | Used Import | Ex-Lease
+  condition               String        // Excellent | Very Good | Good
+  features                String[]
   /// JSON array of { url: string; alt: string; order: number }
-  images              Json          @default("[]")
-  description         String
-  status              VehicleStatus @default(AVAILABLE)
-  financeEligible     Boolean       @default(true)
-  inspectionReportUrl String?
-  locationId          String
-  location            Location      @relation(fields: [locationId], references: [id])
-  financeApplications FinanceApplication[]
-  testDriveBookings   TestDriveBooking[]
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  images                  Json          @default("[]")
+  description             String
+  status                  VehicleStatus @default(AVAILABLE)
+  financeEligible         Boolean       @default(true)
+  inspectionReportUrl     String?
+  /// Staff-only: purchase cost in NZD
+  purchasePriceCents      Int?
+  /// Staff-only: reconditioning cost in NZD
+  reconditioningCostCents Int?
+  locationId              String
+  location                Location      @relation(fields: [locationId], references: [id])
+  financeApplications     FinanceApplication[]
+  testDriveBookings       TestDriveBooking[]
+  priceHistory            PriceHistory[]
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   @@index([locationId])
   @@index([status])
   @@index([year])
   @@index([make, model])
+}
+
+// ─── Price history ────────────────────────────────────────────────────────────
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  oldPrice    Int
+  newPrice    Int
+  changedAt   DateTime @default(now())
+  changedById String?
+  changedBy   User?    @relation("PriceHistoryChanger", fields: [changedById], references: [id])
+
+  @@index([vehicleId])
+  @@index([changedAt])
 }

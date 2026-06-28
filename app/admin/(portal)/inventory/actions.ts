@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { del } from "@vercel/blob";
 import { prisma } from "../../../lib/prisma";
 import { requirePermission } from "../../../lib/auth-helpers";
 import { hasPermission } from "../../../lib/permissions";
@@ -52,7 +53,7 @@ const vehicleSchema = z.object({
   importStatus: z.enum(IMPORT_STATUSES),
   condition: z.enum(CONDITIONS),
   features: z.string().max(5000).optional(),
-  images: z.string().max(20000).optional(),
+  images: z.string().max(100000).optional(),
   description: z.string().min(1, "Description is required").max(10000),
   status: z.enum(["AVAILABLE", "PENDING", "SOLD", "ARCHIVED"]),
   financeEligible: z.preprocess((v) => v === "on" || v === "true", z.boolean()),
@@ -61,6 +62,14 @@ const vehicleSchema = z.object({
     z.string().url().optional()
   ),
   locationId: z.string().min(1, "Location is required"),
+  purchasePriceCents: z.preprocess(
+    (v) => (v === "" || v === null ? undefined : v),
+    z.coerce.number().int().min(0).max(10_000_000).optional()
+  ),
+  reconditioningCostCents: z.preprocess(
+    (v) => (v === "" || v === null ? undefined : v),
+    z.coerce.number().int().min(0).max(10_000_000).optional()
+  ),
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,16 +83,36 @@ function generateSlug(year: number, make: string, model: string, variant?: strin
 
 function parseImages(raw: string | undefined, year: number, make: string, model: string) {
   if (!raw) return [];
-  return raw.split("\n").map(s => s.trim()).filter(Boolean).map((url, i) => ({
-    url,
-    alt: `${year} ${make} ${model} — image ${i + 1}`,
-    order: i + 1,
-  }));
+  try {
+    const parsed = JSON.parse(raw) as Array<{ url: string }>;
+    return parsed
+      .filter((img) => typeof img.url === "string" && img.url.startsWith("http"))
+      .map((img, i) => ({
+        url: img.url,
+        alt: `${year} ${make} ${model} — image ${i + 1}`,
+        order: i + 1,
+      }));
+  } catch {
+    // Fallback: legacy newline-separated URLs
+    return raw.split("\n").map(s => s.trim()).filter(Boolean).map((url, i) => ({
+      url,
+      alt: `${year} ${make} ${model} — image ${i + 1}`,
+      order: i + 1,
+    }));
+  }
 }
 
 function parseFeatures(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw.split("\n").map(s => s.trim()).filter(Boolean);
+}
+
+function isBlobUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname.endsWith(".blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
 }
 
 // ─── Location access helper ───────────────────────────────────────────────────
@@ -134,6 +163,8 @@ export async function createVehicle(
       doors: data.doors ?? null,
       seats: data.seats ?? null,
       inspectionReportUrl: data.inspectionReportUrl ?? null,
+      purchasePriceCents: data.purchasePriceCents ?? null,
+      reconditioningCostCents: data.reconditioningCostCents ?? null,
     },
   });
 
@@ -158,7 +189,7 @@ export async function updateVehicle(
 ): Promise<{ error: string | null }> {
   const session = await requirePermission("inventory.edit");
 
-  const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { locationId: true, vin: true } });
+  const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { locationId: true, vin: true, images: true, price: true } });
   if (!vehicle) return { error: "Vehicle not found." };
 
   const hasViewAll = hasPermission(session.user.role.permissions, "locations.viewall");
@@ -181,6 +212,15 @@ export async function updateVehicle(
   const features = parseFeatures(featuresRaw);
   const images = parseImages(imagesRaw, data.year, data.make, data.model);
 
+  // Collect Blob URLs that are being removed so we can clean them up after saving
+  const oldImages = Array.isArray(vehicle.images)
+    ? (vehicle.images as Array<{ url: string }>)
+    : [];
+  const newUrlSet = new Set(images.map((img) => img.url));
+  const blobsToDelete = oldImages
+    .map((img) => img.url)
+    .filter((url) => isBlobUrl(url) && !newUrlSet.has(url));
+
   await prisma.vehicle.update({
     where: { id },
     data: {
@@ -193,8 +233,27 @@ export async function updateVehicle(
       doors: data.doors ?? null,
       seats: data.seats ?? null,
       inspectionReportUrl: data.inspectionReportUrl ?? null,
+      purchasePriceCents: data.purchasePriceCents ?? null,
+      reconditioningCostCents: data.reconditioningCostCents ?? null,
     },
   });
+
+  // Log price change if it occurred
+  if (data.price !== vehicle.price) {
+    await prisma.priceHistory.create({
+      data: {
+        vehicleId: id,
+        oldPrice: vehicle.price,
+        newPrice: data.price,
+        changedById: session.user.id,
+      },
+    });
+  }
+
+  // Delete removed Blob images after the DB is committed (best-effort)
+  if (blobsToDelete.length > 0) {
+    await del(blobsToDelete).catch(() => {});
+  }
 
   await logAction({
     actorId: session.user.id,
@@ -257,4 +316,46 @@ export async function updateVehicleStatus(
   revalidatePath(`/admin/inventory/${id}`);
 
   return { error: null };
+}
+
+// ─── Bulk update vehicle status ───────────────────────────────────────────────
+
+export async function bulkUpdateVehicleStatus(
+  ids: string[],
+  newStatus: VehicleStatus
+): Promise<{ error: string | null; updated: number }> {
+  if (!ids.length) return { error: "No vehicles selected.", updated: 0 };
+
+  const parsed = statusSchema.safeParse(newStatus);
+  if (!parsed.success) return { error: "Invalid status.", updated: 0 };
+
+  const neededPermission =
+    newStatus === "SOLD"
+      ? "inventory.sold"
+      : newStatus === "ARCHIVED"
+      ? "inventory.archive"
+      : "inventory.edit";
+
+  const session = await requirePermission(neededPermission);
+
+  const hasViewAll = hasPermission(session.user.role.permissions, "locations.viewall");
+  const locationIds = session.user.locations.map((l) => l.id);
+  const locationFilter = hasViewAll ? {} : { locationId: { in: locationIds } };
+
+  const result = await prisma.vehicle.updateMany({
+    where: { id: { in: ids }, ...locationFilter },
+    data: { status: parsed.data },
+  });
+
+  await logAction({
+    actorId: session.user.id,
+    action: "VEHICLE_BULK_STATUS_CHANGED",
+    entityType: "Vehicle",
+    entityId: ids.join(","),
+    metadata: { to: parsed.data, count: result.count },
+  });
+
+  revalidatePath("/admin/inventory");
+
+  return { error: null, updated: result.count };
 }

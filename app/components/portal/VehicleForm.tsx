@@ -12,6 +12,7 @@ import {
   CONDITIONS,
   PRICE_NOTES,
 } from "../../lib/vehicle-constants";
+import { ImageManager, type ImageManagerHandle } from "./ImageManager";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,8 @@ export interface VehicleFormDefaults {
   financeEligible?: boolean;
   inspectionReportUrl?: string | null;
   locationId?: string;
+  purchasePriceCents?: number | null;
+  reconditioningCostCents?: number | null;
 }
 
 interface VehicleFormProps {
@@ -94,7 +97,6 @@ const inputClass =
 const inputStyle = {
   borderColor: "#E4E5E8",
   color: "#13151A",
-  // Focus ring via Tailwind `focus:ring-[#E15A2C]` won't work inline; use className
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -102,29 +104,104 @@ const inputStyle = {
 export function VehicleForm({ action, defaultValues: d = {}, locations, mode, cancelHref }: VehicleFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const imageManagerRef = useRef<ImageManagerHandle>(null);
 
-  const imageDefault = Array.isArray(d.images)
-    ? d.images.map((i) => i.url).join("\n")
-    : "";
   const featuresDefault = Array.isArray(d.features) ? d.features.join("\n") : "";
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function isBlobUrl(url: string): boolean {
+    try {
+      return new URL(url).hostname.endsWith(".public.blob.vercel-storage.com");
+    } catch {
+      return false;
+    }
+  }
+
+  async function uploadFile(file: File): Promise<string> {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(body.error ?? "Upload failed");
+    }
+    const { url } = await res.json() as { url: string };
+    return url;
+  }
+
+  async function uploadExternalUrl(url: string): Promise<string> {
+    const fd = new FormData();
+    fd.append("url", url);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(body.error ?? "Failed to import image from URL");
+    }
+    const { url: newUrl } = await res.json() as { url: string };
+    return newUrl;
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    const formData = new FormData(e.currentTarget);
+
+    const formEl = e.currentTarget;
+    const entries = imageManagerRef.current?.getEntries() ?? [];
+
+    // Filter out empty URL entries
+    const validEntries = entries.filter(
+      (e) => e.kind === "file" || (e.kind === "url" && e.url.trim())
+    );
+
+    const needsUpload = validEntries.some(
+      (e) => e.kind === "file" || (e.kind === "url" && !isBlobUrl(e.url.trim()))
+    );
+
+    let resolvedImages: Array<{ url: string }>;
+
+    if (needsUpload) {
+      setIsUploading(true);
+      try {
+        resolvedImages = await Promise.all(
+          validEntries.map(async (entry) => {
+            if (entry.kind === "file") {
+              return { url: await uploadFile(entry.file) };
+            }
+            const url = entry.url.trim();
+            if (isBlobUrl(url)) return { url };
+            return { url: await uploadExternalUrl(url) };
+          })
+        );
+      } catch {
+        setIsUploading(false);
+        setError("Image upload failed. Please try again.");
+        return;
+      }
+      setIsUploading(false);
+    } else {
+      resolvedImages = validEntries.map((e) => ({
+        url: (e as { kind: "url"; url: string }).url.trim(),
+      }));
+    }
+
+    const formData = new FormData(formEl);
+    formData.set("images", JSON.stringify(resolvedImages));
+
     startTransition(async () => {
       const result = await action(formData);
       if (result?.error) {
         setError(result.error);
+      } else {
+        imageManagerRef.current?.syncEntries(resolvedImages.map((img) => img.url));
       }
-      // On success: createVehicle redirects server-side; updateVehicle revalidates
     });
   }
 
+  const isBusy = isUploading || isPending;
+
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
         <div
           className="flex items-center gap-2 rounded-lg border px-4 py-3 text-sm"
@@ -280,14 +357,6 @@ export function VehicleForm({ action, defaultValues: d = {}, locations, mode, ca
             className={`${inputClass} resize-y font-mono text-xs`} style={inputStyle}
             placeholder={"Leather seats\nSunroof\nReverse camera\nApple CarPlay"} />
         </FormField>
-        <FormField label="Image URLs (one per line)" htmlFor="images" fullWidth>
-          <textarea id="images" name="images" rows={4} defaultValue={imageDefault}
-            className={`${inputClass} resize-y font-mono text-xs`} style={inputStyle}
-            placeholder={"https://example.com/image1.jpg\nhttps://example.com/image2.jpg"} />
-          <p className="mt-1 text-xs" style={{ color: "#9CA3AF" }}>
-            Each URL becomes one listing image. Alt text is auto-generated.
-          </p>
-        </FormField>
         <FormField label="Inspection Report URL" htmlFor="inspectionReportUrl" fullWidth>
           <input id="inspectionReportUrl" name="inspectionReportUrl" type="url"
             defaultValue={d.inspectionReportUrl ?? ""}
@@ -295,18 +364,55 @@ export function VehicleForm({ action, defaultValues: d = {}, locations, mode, ca
         </FormField>
       </FieldGroup>
 
+      {/* Images */}
+      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
+        <div className="px-5 py-3 border-b" style={{ borderColor: "#E4E5E8", backgroundColor: "#F9FAFB" }}>
+          <h2 className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Images</h2>
+        </div>
+        <div className="px-5 py-4">
+          <ImageManager ref={imageManagerRef} initial={d.images} />
+        </div>
+      </div>
+
+      {/* Profit Tracking (staff-only, not shown on public site) */}
+      <FieldGroup title="Profit Tracking (Staff Only)">
+        <FormField label="Purchase Price (NZD)" htmlFor="purchasePriceCents">
+          <div className="flex">
+            <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 text-sm"
+              style={{ borderColor: "#E4E5E8", backgroundColor: "#F9FAFB", color: "#5B5F6B" }}>$</span>
+            <input id="purchasePriceCents" name="purchasePriceCents" type="number" min={0}
+              defaultValue={d.purchasePriceCents ?? ""}
+              className="flex-1 rounded-l-none rounded-r-lg border px-3 py-2 text-sm focus:outline-none"
+              style={{ borderColor: "#E4E5E8", color: "#13151A" }}
+              placeholder="What you paid for it" />
+          </div>
+        </FormField>
+        <FormField label="Reconditioning Cost (NZD)" htmlFor="reconditioningCostCents">
+          <div className="flex">
+            <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 text-sm"
+              style={{ borderColor: "#E4E5E8", backgroundColor: "#F9FAFB", color: "#5B5F6B" }}>$</span>
+            <input id="reconditioningCostCents" name="reconditioningCostCents" type="number" min={0}
+              defaultValue={d.reconditioningCostCents ?? ""}
+              className="flex-1 rounded-l-none rounded-r-lg border px-3 py-2 text-sm focus:outline-none"
+              style={{ borderColor: "#E4E5E8", color: "#13151A" }}
+              placeholder="Repairs, cleaning, WOF, etc." />
+          </div>
+        </FormField>
+      </FieldGroup>
+
       {/* Actions */}
       <div className="flex items-center gap-3 justify-end pt-2">
         <button type="button" onClick={() => router.push(cancelHref)}
-          className="px-5 py-2.5 rounded-lg border text-sm font-medium transition-colors hover:bg-gray-50"
+          disabled={isBusy}
+          className="px-5 py-2.5 rounded-lg border text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-50"
           style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}>
           Cancel
         </button>
-        <button type="submit" disabled={isPending}
+        <button type="submit" disabled={isBusy}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity disabled:opacity-60"
           style={{ backgroundColor: "#142036" }}>
-          {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-          {mode === "create" ? "Add Vehicle" : "Save Changes"}
+          {isBusy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+          {isUploading ? "Uploading images..." : isPending ? "Saving..." : mode === "create" ? "Add Vehicle" : "Save Changes"}
         </button>
       </div>
     </form>

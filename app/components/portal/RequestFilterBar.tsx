@@ -49,7 +49,7 @@ export function RequestFilterBar({ totalCount }: RequestFilterBarProps) {
   const hasFilters = q || status;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-4">
+    <div className="flex flex-wrap items-center gap-3">
       {/* Search */}
       <div className="relative flex-1 min-w-[200px] max-w-xs">
         <Search

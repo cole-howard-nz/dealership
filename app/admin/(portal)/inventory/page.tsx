@@ -3,20 +3,13 @@ import Link from "next/link";
 import { requirePermission } from "../../../lib/auth-helpers";
 import { hasPermission } from "../../../lib/permissions";
 import { prisma } from "../../../lib/prisma";
-import { format } from "date-fns";
-import { Package, Plus, MapPin } from "lucide-react";
+import { Package, Plus, Download } from "lucide-react";
 import type { VehicleStatus } from "@prisma/client";
 import { InventoryFilters } from "./InventoryFilters";
+import { InventoryTable } from "../../../components/portal/InventoryTable";
 
 export const metadata: Metadata = {
   title: "Inventory — Northbridge Motors Staff Portal",
-};
-
-const STATUS_CONFIG: Record<VehicleStatus, { label: string; bg: string; text: string; border: string }> = {
-  AVAILABLE: { label: "Available", bg: "#DCFCE7", text: "#15803D", border: "#86EFAC" },
-  PENDING:   { label: "Pending",   bg: "#FEF9C3", text: "#854D0E", border: "#FDE047" },
-  SOLD:      { label: "Sold",      bg: "#F3F4F6", text: "#374151", border: "#D1D5DB" },
-  ARCHIVED:  { label: "Archived",  bg: "#F3F4F6", text: "#9CA3AF", border: "#E5E7EB" },
 };
 
 const PAGE_SIZE = 10;
@@ -79,6 +72,14 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const showLocationColumn = !activeLoc;
   const canCreate = hasPermission(permissions, "inventory.create");
+  const canEdit = hasPermission(permissions, "inventory.edit");
+  const canSold = hasPermission(permissions, "inventory.sold");
+  const canArchive = hasPermission(permissions, "inventory.archive");
+
+  // Build export URL preserving current location filter
+  const exportParams = new URLSearchParams();
+  if (activeLoc) exportParams.set("loc", activeLoc);
+  const exportUrl = `/api/portal/inventory/export?${exportParams.toString()}`;
 
   function buildUrl(params: Record<string, string | undefined>) {
     const merged = { loc: sp.loc, q: sp.q, status: sp.status, page: sp.page, ...params };
@@ -100,112 +101,65 @@ export default async function InventoryPage({ searchParams }: PageProps) {
             {total} vehicle{total !== 1 ? "s" : ""}
           </p>
         </div>
-        {canCreate && (
-          <Link
-            href="/admin/inventory/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white"
-            style={{ backgroundColor: "#142036" }}
+        <div className="flex items-center gap-2">
+          <a
+            href={exportUrl}
+            download
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors hover:bg-gray-50"
+            style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}
           >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add Vehicle
-          </Link>
-        )}
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export CSV
+          </a>
+          {canCreate && (
+            <Link
+              href="/admin/inventory/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white"
+              style={{ backgroundColor: "#142036" }}
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add Vehicle
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
       <InventoryFilters currentQ={q} currentStatus={statusFilter ?? ""} />
 
       {/* Table */}
-      <div className="flex-1 min-h-0 rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
-        {vehicles.length === 0 ? (
-          <div className="py-16 text-center">
-            <Package className="h-10 w-10 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
-            <p className="text-sm" style={{ color: "#5B5F6B" }}>
-              {q || statusFilter ? "No vehicles match your filters." : "No vehicles yet. Add your first vehicle to get started."}
-            </p>
-            {canCreate && !q && !statusFilter && (
-              <Link
-                href="/admin/inventory/new"
-                className="mt-3 inline-block text-sm font-medium hover:underline"
-                style={{ color: "#E15A2C" }}
-              >
-                Add Vehicle
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-auto h-full">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10">
-                <tr style={{ borderBottom: "1px solid #E4E5E8", backgroundColor: "#F9FAFB" }}>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Vehicle</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Price</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Odometer</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Status</th>
-                  {showLocationColumn && (
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Location</th>
-                  )}
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Added</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vehicles.map((v) => {
-                  const sc = STATUS_CONFIG[v.status];
-                  return (
-                    <tr
-                      key={v.id}
-                      style={{ borderBottom: "1px solid #F3F4F6" }}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-5 py-3">
-                        <Link href={`/admin/inventory/${v.id}`} className="block hover:underline">
-                          <span className="font-semibold" style={{ color: "#13151A" }}>
-                            {v.year} {v.make} {v.model}
-                          </span>
-                          {v.variant && (
-                            <span className="ml-1" style={{ color: "#5B5F6B" }}>{v.variant}</span>
-                          )}
-                          <span className="block text-xs mt-0.5 font-mono" style={{ color: "#9CA3AF" }}>
-                            VIN: {v.vin}
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 font-semibold" style={{ color: "#13151A" }}>
-                        ${v.price.toLocaleString()}
-                        {v.priceNote && (
-                          <span className="block text-xs font-normal" style={{ color: "#9CA3AF" }}>{v.priceNote}</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3" style={{ color: "#5B5F6B" }}>
-                        {v.odometerKm.toLocaleString()} km
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
-                          style={{ backgroundColor: sc.bg, color: sc.text, borderColor: sc.border }}
-                        >
-                          {sc.label}
-                        </span>
-                      </td>
-                      {showLocationColumn && (
-                        <td className="px-4 py-3">
-                          <span className="flex items-center gap-1 text-xs" style={{ color: "#5B5F6B" }}>
-                            <MapPin className="h-3 w-3 shrink-0" style={{ color: "#E15A2C" }} aria-hidden="true" />
-                            {v.location.name}
-                          </span>
-                        </td>
-                      )}
-                      <td className="px-4 py-3 text-xs" style={{ color: "#9CA3AF" }}>
-                        {format(v.createdAt, "d MMM yyyy")}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {vehicles.length === 0 ? (
+        <div
+          className="flex-1 min-h-0 rounded-xl border bg-white shadow-sm py-16 text-center"
+          style={{ borderColor: "#E4E5E8" }}
+        >
+          <Package className="h-10 w-10 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
+          <p className="text-sm" style={{ color: "#5B5F6B" }}>
+            {q || statusFilter
+              ? "No vehicles match your filters."
+              : "No vehicles yet. Add your first vehicle to get started."}
+          </p>
+          {canCreate && !q && !statusFilter && (
+            <Link
+              href="/admin/inventory/new"
+              className="mt-3 inline-block text-sm font-medium hover:underline"
+              style={{ color: "#E15A2C" }}
+            >
+              Add Vehicle
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0">
+          <InventoryTable
+            vehicles={vehicles}
+            showLocationColumn={showLocationColumn}
+            canEdit={canEdit}
+            canSold={canSold}
+            canArchive={canArchive}
+          />
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

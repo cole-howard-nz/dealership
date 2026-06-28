@@ -21,6 +21,7 @@ export interface Vehicle {
   year: number;
   bodyType: BodyType;
   price: number;
+  previousPrice?: number;
   priceNote?: "Drive Away" | "Plus On-Road Costs" | "Negotiable";
   odometerKm: number;
   transmission: Transmission;
@@ -37,6 +38,7 @@ export interface Vehicle {
   images: VehicleImage[];
   description: string;
   location: string;
+  locationId?: string;
   status: VehicleStatus;
   inspectionReportUrl?: string;
   financeEligible: boolean;

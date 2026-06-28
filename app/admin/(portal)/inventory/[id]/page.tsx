@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import QRCodeLib from "qrcode";
 import { requirePermission } from "../../../../lib/auth-helpers";
 import { hasPermission } from "../../../../lib/permissions";
 import { prisma } from "../../../../lib/prisma";
+import { getSetting } from "../../../../lib/settings";
 import { VehicleForm } from "../../../../components/portal/VehicleForm";
 import { VehicleStatusWidget } from "../../../../components/portal/VehicleStatusWidget";
 import { updateVehicle, updateVehicleStatus } from "../actions";
@@ -39,7 +41,14 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
 
   const vehicle = await prisma.vehicle.findUnique({
     where: { id },
-    include: { location: { select: { id: true, name: true } } },
+    include: {
+      location: { select: { id: true, name: true } },
+      priceHistory: {
+        orderBy: { changedAt: "desc" },
+        take: 10,
+        select: { id: true, oldPrice: true, newPrice: true, changedAt: true, changedBy: { select: { name: true } } },
+      },
+    },
   });
 
   if (!vehicle) notFound();
@@ -61,6 +70,24 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
 
   const sc = STATUS_CONFIG[vehicle.status];
   const updateAction = updateVehicle.bind(null, id);
+
+  // Generate QR code pointing to the public vehicle listing
+  const publicSiteUrl = await getSetting("publicSiteUrl");
+  const qrUrl = `${publicSiteUrl}/inventory/${vehicle.slug}`;
+  const qrDataUrl = await QRCodeLib.toDataURL(qrUrl, {
+    width: 200,
+    margin: 1,
+    color: { dark: "#142036", light: "#FFFFFF" },
+  });
+
+  // Profit calculation
+  const totalCost =
+    (vehicle.purchasePriceCents ?? 0) + (vehicle.reconditioningCostCents ?? 0);
+  const grossProfit = totalCost > 0 ? vehicle.price - totalCost : null;
+  const marginPct =
+    grossProfit !== null && totalCost > 0
+      ? ((grossProfit / vehicle.price) * 100).toFixed(1)
+      : null;
 
   return (
     <div>
@@ -140,6 +167,8 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
             financeEligible: vehicle.financeEligible,
             inspectionReportUrl: vehicle.inspectionReportUrl,
             locationId: vehicle.locationId,
+            purchasePriceCents: vehicle.purchasePriceCents,
+            reconditioningCostCents: vehicle.reconditioningCostCents,
           }}
           locations={locations}
           mode="edit"
@@ -210,6 +239,34 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
               <Field label="Added" value={format(vehicle.createdAt, "d MMM yyyy, h:mm a")} />
               <Field label="Last updated" value={format(vehicle.updatedAt, "d MMM yyyy, h:mm a")} />
             </Section>
+
+            {vehicle.priceHistory.length > 0 && (
+              <Section title="Price History">
+                <div className="divide-y" style={{ borderColor: "#F3F4F6" }}>
+                  {vehicle.priceHistory.map((entry) => (
+                    <div key={entry.id} className="flex items-center justify-between py-2 text-sm">
+                      <div>
+                        <span style={{ color: "#9CA3AF" }}>
+                          ${entry.oldPrice.toLocaleString()}
+                        </span>
+                        <span className="mx-2" style={{ color: "#D1D5DB" }}>→</span>
+                        <span className="font-semibold" style={{ color: entry.newPrice < entry.oldPrice ? "#15803D" : "#DC2626" }}>
+                          ${entry.newPrice.toLocaleString()}
+                        </span>
+                        {entry.changedBy && (
+                          <span className="ml-2 text-xs" style={{ color: "#9CA3AF" }}>
+                            by {entry.changedBy.name}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs shrink-0" style={{ color: "#9CA3AF" }}>
+                        {format(entry.changedAt, "d MMM yyyy")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
           </div>
 
           {/* Right: actions */}
@@ -257,6 +314,63 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
                 <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "#E15A2C" }} aria-hidden="true" />
                 {vehicle.location.name}
               </p>
+            </Panel>
+
+            {(vehicle.purchasePriceCents != null || vehicle.reconditioningCostCents != null) && (
+              <Panel title="Profit Tracking">
+                <div className="space-y-2 text-sm">
+                  {vehicle.purchasePriceCents != null && (
+                    <div className="flex justify-between">
+                      <span style={{ color: "#9CA3AF" }}>Purchase cost</span>
+                      <span style={{ color: "#13151A" }}>${vehicle.purchasePriceCents.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {vehicle.reconditioningCostCents != null && (
+                    <div className="flex justify-between">
+                      <span style={{ color: "#9CA3AF" }}>Reconditioning</span>
+                      <span style={{ color: "#13151A" }}>${vehicle.reconditioningCostCents.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {totalCost > 0 && (
+                    <div className="flex justify-between pt-1 border-t" style={{ borderColor: "#E4E5E8" }}>
+                      <span style={{ color: "#9CA3AF" }}>Total cost</span>
+                      <span style={{ color: "#13151A" }}>${totalCost.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {grossProfit !== null && (
+                    <div className="flex justify-between pt-1 border-t" style={{ borderColor: "#E4E5E8" }}>
+                      <span className="font-semibold" style={{ color: "#9CA3AF" }}>Gross profit</span>
+                      <span
+                        className="font-semibold"
+                        style={{ color: grossProfit >= 0 ? "#15803D" : "#DC2626" }}
+                      >
+                        {grossProfit >= 0 ? "" : "-"}${Math.abs(grossProfit).toLocaleString()}
+                        {marginPct && (
+                          <span className="ml-1.5 text-xs font-normal" style={{ color: "#9CA3AF" }}>
+                            ({marginPct}%)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Panel>
+            )}
+
+            <Panel title="QR Code">
+              <div className="flex flex-col items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qrDataUrl} alt="QR code for public listing" className="rounded-lg" width={160} height={160} />
+                <p className="text-xs text-center break-all" style={{ color: "#9CA3AF" }}>{qrUrl}</p>
+                <a
+                  href={qrDataUrl}
+                  download={`qr-${vehicle.slug}.png`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
+                  style={{ color: "#E15A2C" }}
+                >
+                  Download PNG
+                </a>
+              </div>
             </Panel>
           </div>
         </div>

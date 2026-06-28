@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 
 interface AddNoteFormProps {
   requestId: string;
-  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication";
+  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication" | "TestDriveBooking";
   addNoteAction: (
     entityType: string,
     id: string,

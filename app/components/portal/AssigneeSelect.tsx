@@ -11,7 +11,7 @@ interface Assignee {
 interface AssigneeSelectProps {
   currentAssigneeId: string | null;
   requestId: string;
-  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication";
+  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication" | "TestDriveBooking";
   staffOptions: Assignee[];
   updateAction: (
     entityType: string,

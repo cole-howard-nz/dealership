@@ -17,6 +17,10 @@ const businessSchema = z.object({
   businessName: z.string().min(1, "Business name is required").max(200),
   businessPhone: z.string().max(50).optional(),
   businessAddress: z.string().max(500).optional(),
+  publicSiteUrl: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().url("Must be a valid URL").optional()
+  ),
 });
 
 export async function updateBusinessDetails(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -26,12 +30,14 @@ export async function updateBusinessDetails(_prevState: ActionResult, formData: 
     businessName: formData.get("businessName"),
     businessPhone: formData.get("businessPhone") || undefined,
     businessAddress: formData.get("businessAddress") || undefined,
+    publicSiteUrl: formData.get("publicSiteUrl") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.errors[0].message, success: false };
 
   await setSetting("businessName", parsed.data.businessName);
   await setSetting("businessPhone", parsed.data.businessPhone ?? "");
   await setSetting("businessAddress", parsed.data.businessAddress ?? "");
+  await setSetting("publicSiteUrl", parsed.data.publicSiteUrl ?? "");
 
   revalidatePath("/admin/settings");
   return { error: null, success: true };

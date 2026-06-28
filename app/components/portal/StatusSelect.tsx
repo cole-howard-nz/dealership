@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<RequestStatus, string> = {
 interface StatusSelectProps {
   currentStatus: RequestStatus;
   requestId: string;
-  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication";
+  entityType: "ContactRequest" | "TradeInRequest" | "FinanceApplication" | "TestDriveBooking";
   updateAction: (
     entityType: string,
     id: string,
