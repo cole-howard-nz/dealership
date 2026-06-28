@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Zap, Car, Bus, Truck, ShieldCheck, CreditCard } from "lucide-react";
-import { vehicles } from "../data/vehicles";
 import { VehicleCard } from "../components/VehicleCard";
 import { FinanceCalculator } from "../components/FinanceCalculator";
+import type { Vehicle } from "../types";
 
-const jdmFeatured = vehicles.filter((v) => v.status === "Available" && v.bodyType === "Performance").slice(0, 3);
-const allFeatured = vehicles.filter((v) => v.status === "Available").slice(0, 6);
+interface HomePageProps {
+  jdmFeatured: Vehicle[];
+  allFeatured: Vehicle[];
+}
 
 const categories = [
   { label: "JDM & Performance", type: "Performance", Icon: Zap, desc: "Import legends & track cars" },
@@ -36,7 +38,7 @@ const trustPoints = [
   },
 ];
 
-export function HomePage() {
+export function HomePage({ jdmFeatured, allFeatured }: HomePageProps) {
   return (
     <div className="homepage">
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}

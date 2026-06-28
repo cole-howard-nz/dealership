@@ -60,7 +60,7 @@ export default async function StaffDetailPage({ params }: PageProps) {
   const assignedLocationIds = user.locations.map((l) => l.locationId);
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl mx-auto">
       <Link
         href="/admin/staff"
         className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"

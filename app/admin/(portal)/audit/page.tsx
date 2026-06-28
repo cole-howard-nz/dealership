@@ -5,12 +5,13 @@ import { hasPermission } from "../../../lib/permissions";
 import { prisma } from "../../../lib/prisma";
 import { format, formatDistanceToNow } from "date-fns";
 import { Clock } from "lucide-react";
+import { AuditFilters } from "./AuditFilters";
 
 export const metadata: Metadata = {
   title: "Audit Log — Northbridge Motors Staff Portal",
 };
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 const ACTION_LABELS: Record<string, string> = {
   STATUS_CHANGED: "Status changed",
@@ -111,11 +112,9 @@ export default async function AuditPage({ searchParams }: PageProps) {
     return `/admin/audit?${search.toString()}`;
   }
 
-  const uniqueActions = Object.keys(ACTION_LABELS);
-  const uniqueEntities = Object.keys(ENTITY_LABELS);
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>Audit Log</h1>
         <p className="text-sm mt-0.5" style={{ color: "#5B5F6B" }}>
@@ -124,45 +123,16 @@ export default async function AuditPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filters */}
-      <form method="GET" action="/admin/audit" className="flex flex-wrap gap-2 mb-5">
-        {sp.loc && <input type="hidden" name="loc" value={sp.loc} />}
-        <input
-          type="search" name="q" defaultValue={q}
-          placeholder="Search by actor…"
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none flex-1 min-w-[180px]"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}
-        />
-        <select name="action" defaultValue={sp.action ?? ""}
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}>
-          <option value="">All actions</option>
-          {uniqueActions.map((a) => (
-            <option key={a} value={a}>{ACTION_LABELS[a] ?? a}</option>
-          ))}
-        </select>
-        <select name="entity" defaultValue={sp.entity ?? ""}
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}>
-          <option value="">All entities</option>
-          {uniqueEntities.map((e) => (
-            <option key={e} value={e}>{ENTITY_LABELS[e] ?? e}</option>
-          ))}
-        </select>
-        <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ backgroundColor: "#142036" }}>
-          Filter
-        </button>
-        {(q || sp.action || sp.entity) && (
-          <Link href={buildUrl({ q: undefined, action: undefined, entity: undefined, page: undefined })}
-            className="px-4 py-2 rounded-lg text-sm font-medium border"
-            style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}>
-            Clear
-          </Link>
-        )}
-      </form>
+      <AuditFilters
+        currentQ={q}
+        currentAction={sp.action ?? ""}
+        currentEntity={sp.entity ?? ""}
+        actionLabels={ACTION_LABELS}
+        entityLabels={ENTITY_LABELS}
+      />
 
       {/* Log table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
+      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8", maxHeight: "calc(100vh - 280px)" }}>
         {logs.length === 0 ? (
           <div className="py-16 text-center">
             <Clock className="h-10 w-10 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
@@ -171,9 +141,9 @@ export default async function AuditPage({ searchParams }: PageProps) {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ borderBottom: "1px solid #E4E5E8", backgroundColor: "#F9FAFB" }}>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Time</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Actor</th>

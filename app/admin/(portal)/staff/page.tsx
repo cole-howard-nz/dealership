@@ -5,12 +5,13 @@ import { hasPermission } from "../../../lib/permissions";
 import { prisma } from "../../../lib/prisma";
 import { format, formatDistanceToNow } from "date-fns";
 import { Users, UserPlus, Clock } from "lucide-react";
+import { StaffFilters } from "./StaffFilters";
 
 export const metadata: Metadata = {
   title: "Staff — Northbridge Motors Staff Portal",
 };
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 interface PageProps {
   searchParams: Promise<{
@@ -69,7 +70,7 @@ export default async function StaffPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>Staff</h1>
@@ -90,41 +91,10 @@ export default async function StaffPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filters */}
-      <form method="GET" action="/admin/staff" className="flex flex-wrap gap-2 mb-5">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q}
-          placeholder="Search name or email…"
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none flex-1 min-w-[200px]"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}
-        />
-        <label className="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm"
-          style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}>
-          <input
-            type="checkbox"
-            name="inactive"
-            value="1"
-            defaultChecked={showInactive}
-            className="h-4 w-4"
-            style={{ accentColor: "#142036" }}
-          />
-          Show deactivated
-        </label>
-        <button type="submit" className="px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ backgroundColor: "#142036" }}>
-          Filter
-        </button>
-        {(q || showInactive) && (
-          <Link href="/admin/staff" className="px-4 py-2 rounded-lg text-sm font-medium border"
-            style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}>
-            Clear
-          </Link>
-        )}
-      </form>
+      <StaffFilters currentQ={q} showInactive={showInactive} />
 
       {/* List */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
+      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8", maxHeight: "calc(100vh - 280px)" }}>
         {users.length === 0 ? (
           <div className="py-16 text-center">
             <Users className="h-10 w-10 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
@@ -139,9 +109,9 @@ export default async function StaffPage({ searchParams }: PageProps) {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ borderBottom: "1px solid #E4E5E8", backgroundColor: "#F9FAFB" }}>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Name</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Role</th>

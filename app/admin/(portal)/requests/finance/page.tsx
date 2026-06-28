@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "../../../../lib/auth-helpers";
 import { hasPermission } from "../../../../lib/permissions";
@@ -85,7 +85,7 @@ export default async function FinanceApplicationsPage({ searchParams }: PageProp
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="max-w-screen-xl">
+    <div className="">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
           Finance Applications
@@ -233,3 +233,4 @@ export default async function FinanceApplicationsPage({ searchParams }: PageProp
     </div>
   );
 }
+

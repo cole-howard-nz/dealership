@@ -20,7 +20,7 @@ export default async function AccountPage() {
   const notifAction = updateNotificationPrefs.bind(null, session.user.id);
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
           My Account
@@ -88,7 +88,9 @@ export default async function AccountPage() {
       </div>
 
       {/* Change password card */}
-      <AccountForm userId={session.user.id} />
+      <div className="mb-6">
+        <AccountForm userId={session.user.id} />
+      </div>
 
       {/* Notification preferences */}
       <div

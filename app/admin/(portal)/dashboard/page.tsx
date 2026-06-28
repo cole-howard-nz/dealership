@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireAuth } from "../../../lib/auth-helpers";
 import { prisma } from "../../../lib/prisma";
 import { hasPermission } from "../../../lib/permissions";
@@ -25,6 +26,7 @@ function SummaryCard({
   extraLabel,
   extraValue,
   color,
+  href,
 }: {
   title: string;
   icon: React.ElementType;
@@ -33,10 +35,12 @@ function SummaryCard({
   extraLabel: string;
   extraValue: string;
   color: string;
+  href: string;
 }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-5 shadow-sm"
+    <Link
+      href={href}
+      className="block rounded-xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
       style={{ borderColor: "#E4E5E8" }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -79,7 +83,7 @@ function SummaryCard({
           <span className="font-medium" style={{ color: "#13151A" }}>{extraValue}</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -106,10 +110,7 @@ function ActivityItem({
   const entityShort = entityId.slice(-6).toUpperCase();
 
   return (
-    <div
-      className="flex items-start gap-3 py-3 border-b last:border-b-0"
-      style={{ borderColor: "#E4E5E8" }}
-    >
+    <div className="flex items-start gap-3 py-3">
       <div
         className="mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0"
         style={{ backgroundColor: "#142036" }}
@@ -172,7 +173,7 @@ export default async function DashboardPage() {
       prisma.auditLog.findMany({
         where: hasViewAll ? undefined : { locationId: { in: locationIds } },
         orderBy: { createdAt: "desc" },
-        take: 15,
+        take: 6,
         include: { actor: { select: { name: true } } },
       }),
     ]);
@@ -188,7 +189,7 @@ export default async function DashboardPage() {
     hasPermission(permissions, "inventory.view");
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
           Dashboard
@@ -202,6 +203,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {hasPermission(permissions, "contact.view") && (
             <SummaryCard
+              href="/admin/requests/contact"
               title="Contact Requests"
               icon={MessageSquare}
               newCount={contactNew as number}
@@ -213,6 +215,7 @@ export default async function DashboardPage() {
           )}
           {hasPermission(permissions, "tradein.view") && (
             <SummaryCard
+              href="/admin/requests/trade-in"
               title="Trade-In Requests"
               icon={Car}
               newCount={tradeInNew as number}
@@ -224,6 +227,7 @@ export default async function DashboardPage() {
           )}
           {hasPermission(permissions, "finance.view") && (
             <SummaryCard
+              href="/admin/requests/finance"
               title="Finance Applications"
               icon={CreditCard}
               newCount={financeNew as number}
@@ -235,6 +239,7 @@ export default async function DashboardPage() {
           )}
           {hasPermission(permissions, "inventory.view") && (
             <SummaryCard
+              href="/admin/inventory"
               title="Inventory"
               icon={Package}
               newCount={0}
@@ -266,7 +271,7 @@ export default async function DashboardPage() {
             View all
           </a>
         </div>
-        <div className="px-5 divide-y-0">
+        <div className="px-5 divide-y" style={{ borderColor: "#E4E5E8" }}>
           {recentActivity.length === 0 ? (
             <div className="py-12 text-center">
               <Clock className="h-8 w-8 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
