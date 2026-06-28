@@ -10,7 +10,7 @@ import { AssigneeSelect } from "../../../../../components/portal/AssigneeSelect"
 import { AddNoteForm } from "../../../../../components/portal/AddNoteForm";
 import { NotesList } from "../../../../../components/portal/NotesList";
 import { EstimatedValueForm } from "../../../../../components/portal/EstimatedValueForm";
-import { updateRequestStatus, assignRequest, addNote, setEstimatedValue } from "../../actions";
+import { updateRequestStatus, assignRequest, addNote, editNote, deleteNote, setEstimatedValue } from "../../actions";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, MapPin } from "lucide-react";
 
@@ -38,7 +38,7 @@ export default async function TradeInRequestDetailPage({ params }: PageProps) {
       assignedTo: { select: { id: true, name: true } },
       notes: {
         orderBy: { createdAt: "desc" },
-        include: { author: { select: { name: true } } },
+        select: { id: true, body: true, authorId: true, createdAt: true, author: { select: { name: true } } },
       },
     },
   });
@@ -58,7 +58,7 @@ export default async function TradeInRequestDetailPage({ params }: PageProps) {
   const shortId = id.slice(-6).toUpperCase();
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <Link
         href="/admin/requests/trade-in"
         className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"
@@ -190,7 +190,13 @@ export default async function TradeInRequestDetailPage({ params }: PageProps) {
                 />
               </div>
             )}
-            <NotesList notes={request.notes} />
+            <NotesList
+                notes={request.notes}
+                currentUserId={session.user.id}
+                canUpdate={canUpdate}
+                editNoteAction={editNote}
+                deleteNoteAction={deleteNote}
+              />
           </Panel>
         </div>
       </div>

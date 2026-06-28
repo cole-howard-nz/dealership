@@ -7,12 +7,13 @@ import type { VehicleEnquiry } from "../types";
 
 interface Props {
   vehicleId: string;
+  locationId: string;
   vehicleLabel?: string;
 }
 
 type Errors = Partial<Record<keyof VehicleEnquiry, string>>;
 
-export function EnquiryForm({ vehicleLabel }: Props) {
+export function EnquiryForm({ vehicleId, locationId, vehicleLabel }: Props) {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", message: "",
     preferredContactMethod: "Phone" as "Phone" | "Email",
@@ -60,9 +61,27 @@ export function EnquiryForm({ vehicleLabel }: Props) {
     if (Object.values(newErrors).some(Boolean)) return;
 
     setStatus("submitting");
-    await new Promise((r) => setTimeout(r, 900));
-    // Simulated submission — wire to real backend/API when available.
-    setStatus("success");
+    try {
+      const res = await fetch("/api/public/enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicleId,
+          locationId,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          message: form.message,
+          enquiryType: form.enquiryType,
+          preferredContactMethod: form.preferredContactMethod,
+          consentToContact: form.consentToContact,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
   }
 
   if (status === "success") {

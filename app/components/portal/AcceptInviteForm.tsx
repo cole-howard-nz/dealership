@@ -29,66 +29,78 @@ export function AcceptInviteForm({ action }: AcceptInviteFormProps) {
     });
   }
 
-  const inputClass = "w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none";
-  const inputStyle = { borderColor: "#E4E5E8", color: "#13151A" };
+  const inputBase = "h-11 w-full rounded-xl px-4 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors";
+  const inputStyle = { backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" };
+
+  function onFocus(e: React.FocusEvent<HTMLInputElement>) {
+    e.currentTarget.style.borderColor = "rgba(225,90,44,0.6)";
+    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
+  }
+  function onBlur(e: React.FocusEvent<HTMLInputElement>) {
+    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)";
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border px-4 py-3 text-sm"
-          style={{ borderColor: "#FCA5A5", backgroundColor: "#FEF2F2", color: "#DC2626" }}>
-          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <div
+          className="flex items-start gap-3 rounded-xl p-4 text-sm"
+          style={{ backgroundColor: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.25)", color: "#fca5a5" }}
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-1" style={{ color: "#5B5F6B" }}>
-          Password <span style={{ color: "#E15A2C" }}>*</span>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Password
         </label>
         <div className="relative">
           <input
             id="password" name="password"
             type={showPassword ? "text" : "password"}
-            required autoFocus
-            minLength={8}
-            className={`${inputClass} pr-10`}
+            required autoFocus minLength={8}
+            className={`${inputBase} pr-11`}
             style={inputStyle}
             placeholder="Minimum 8 characters"
+            onFocus={onFocus} onBlur={onBlur}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            style={{ color: "#9CA3AF" }}
+            className="absolute inset-y-0 right-0 flex items-center px-3 transition-colors"
+            style={{ color: "rgba(255,255,255,0.3)" }}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1" style={{ color: "#5B5F6B" }}>
-          Confirm Password <span style={{ color: "#E15A2C" }}>*</span>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Confirm Password
         </label>
         <div className="relative">
           <input
             id="confirmPassword" name="confirmPassword"
             type={showConfirm ? "text" : "password"}
             required
-            className={`${inputClass} pr-10`}
+            className={`${inputBase} pr-11`}
             style={inputStyle}
             placeholder="Repeat your password"
+            onFocus={onFocus} onBlur={onBlur}
           />
           <button
             type="button"
             onClick={() => setShowConfirm(!showConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            style={{ color: "#9CA3AF" }}
+            className="absolute inset-y-0 right-0 flex items-center px-3 transition-colors"
+            style={{ color: "rgba(255,255,255,0.3)" }}
             aria-label={showConfirm ? "Hide password" : "Show password"}
           >
-            {showConfirm ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -96,8 +108,8 @@ export function AcceptInviteForm({ action }: AcceptInviteFormProps) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity disabled:opacity-60 mt-2"
-        style={{ backgroundColor: "#142036" }}
+        className="mt-2 h-11 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+        style={{ backgroundColor: "#E15A2C" }}
       >
         {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
         Set Password &amp; Activate Account

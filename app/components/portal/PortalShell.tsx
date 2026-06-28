@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -17,13 +17,10 @@ import {
   Settings,
   UserCircle,
   LogOut,
-  ChevronDown,
-  ChevronRight,
   Menu,
+  ChevronDown,
 } from "lucide-react";
 import { hasPermission, type Permission } from "../../lib/permissions";
-import { Header } from "../Header";
-import { ShortlistProvider } from "../../hooks/useShortlist";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,7 +81,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 // ─── Sidebar nav item ─────────────────────────────────────────────────────────
 
-function SideNavItem({ item, active }: { item: NavItem; active: boolean }) {
+function SideNavItem({ item, active, count = 0 }: { item: NavItem; active: boolean; count?: number }) {
   const Icon = item.icon;
   return (
     <Link
@@ -96,7 +93,16 @@ function SideNavItem({ item, active }: { item: NavItem; active: boolean }) {
       }`}
     >
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {count > 0 && (
+        <span
+          className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+          style={{ backgroundColor: "#E15A2C", minWidth: "18px", textAlign: "center" }}
+          aria-label={`${count} new`}
+        >
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
     </Link>
   );
 }
@@ -107,82 +113,71 @@ function LocationSelector({
   locations,
   activeLocationId,
   onSelect,
+  expanded,
+  onToggleExpanded,
 }: {
   locations: UserData["locations"];
   activeLocationId: string | "all" | null;
   onSelect: (id: string | "all") => void;
+  expanded: boolean;
+  onToggleExpanded: () => void;
 }) {
-  const [open, setOpen] = useState(false);
 
   if (locations.length <= 1 && activeLocationId !== "all") {
     const loc = locations[0];
     if (!loc) return null;
     return (
-      <div className="flex items-center gap-1.5 text-sm text-white/80">
-        <MapPin className="h-3.5 w-3.5 text-accent shrink-0" aria-hidden="true" />
-        <span className="truncate max-w-[160px]">{loc.name}</span>
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "#E15A2C" }} aria-hidden="true" />
+        <span className="text-xs font-medium text-white/80 truncate">{loc.name}</span>
       </div>
     );
   }
 
-  const activeName =
-    activeLocationId === "all" || activeLocationId === null
-      ? "All Locations"
-      : locations.find((l) => l.id === activeLocationId)?.name ?? "All Locations";
+  const allLocs: Array<{ id: string | "all"; name: string }> = [
+    { id: "all", name: "All Locations" },
+    ...locations,
+  ];
+
+  const activeLoc = allLocs.find(
+    (l) => l.id === activeLocationId || (l.id === "all" && (activeLocationId === "all" || activeLocationId === null))
+  ) ?? allLocs[0];
 
   return (
-    <div className="relative">
+    <div className="px-2 py-1">
+      {/* Toggle header */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors"
-        aria-expanded={open}
-        aria-haspopup="listbox"
+        onClick={onToggleExpanded}
+        className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-left transition-colors hover:bg-white/10"
       >
-        <MapPin className="h-3.5 w-3.5 text-accent shrink-0" aria-hidden="true" />
-        <span className="truncate max-w-[140px]">{activeName}</span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <MapPin className="h-3 w-3 shrink-0" style={{ color: "#E15A2C" }} aria-hidden="true" />
+        <span className="flex-1 truncate font-medium text-white/80">{activeLoc?.name}</span>
+        <ChevronDown
+          className="h-3 w-3 shrink-0 transition-transform duration-200"
+          style={{ color: "rgba(255,255,255,0.4)", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
+          aria-hidden="true"
+        />
       </button>
 
-      {open && (
-        <div
-          role="listbox"
-          className="absolute left-0 top-full mt-1 w-56 rounded-lg border border-white/10 bg-navy shadow-lg z-50"
-          style={{ backgroundColor: "#1a2d4a" }}
-        >
-          <div className="p-1">
-            <button
-              role="option"
-              aria-selected={activeLocationId === "all" || activeLocationId === null}
-              onClick={() => { onSelect("all"); setOpen(false); }}
-              className={`w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-left transition-colors ${
-                activeLocationId === "all" || activeLocationId === null
-                  ? "bg-white/15 text-white"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              All Locations
-            </button>
-
-            <div className="my-1 border-t border-white/10" />
-
-            {locations.map((loc) => (
+      {/* Expanded list */}
+      {expanded && (
+        <div className="mt-0.5 flex flex-col gap-0.5">
+          {allLocs.map((loc) => {
+            const isActive = loc.id === activeLocationId || (loc.id === "all" && (activeLocationId === "all" || activeLocationId === null));
+            return (
               <button
                 key={loc.id}
-                role="option"
-                aria-selected={activeLocationId === loc.id}
-                onClick={() => { onSelect(loc.id); setOpen(false); }}
-                className={`w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-left transition-colors ${
-                  activeLocationId === loc.id
-                    ? "bg-white/15 text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                onClick={() => onSelect(loc.id)}
+                className={`w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-left transition-colors ${
+                  isActive ? "bg-white/15 text-white font-semibold" : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" />
-                {loc.name}
+                <MapPin className="h-3 w-3 shrink-0" style={{ color: isActive ? "#E15A2C" : "rgba(255,255,255,0.3)" }} aria-hidden="true" />
+                <span className="truncate">{loc.name}</span>
+                {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: "#E15A2C" }} />}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -199,6 +194,31 @@ export function PortalShell({ user, children }: PortalShellProps) {
     (searchParams.get("loc") as string | null) ??
     (user.locations.length === 1 ? user.locations[0].id : "all");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [locSelectorExpanded, setLocSelectorExpanded] = useState(true);
+  const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>({});
+
+  const fetchBadgeCounts = useCallback(async () => {
+    try {
+      const loc = activeLocationId === "all" ? "" : `?loc=${activeLocationId}`;
+      const res = await fetch(`/api/portal/badge-counts${loc}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { contact: number; tradein: number; finance: number };
+      setBadgeCounts({
+        "/admin/requests/contact": data.contact,
+        "/admin/requests/trade-in": data.tradein,
+        "/admin/requests/finance": data.finance,
+      });
+    } catch {
+      // silently ignore — badges will just show 0
+    }
+  }, [activeLocationId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBadgeCounts();
+    const interval = setInterval(fetchBadgeCounts, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchBadgeCounts]);
 
   const handleLocationSelect = (id: string | "all") => {
     const next = new URLSearchParams(searchParams.toString());
@@ -246,8 +266,23 @@ export function PortalShell({ user, children }: PortalShellProps) {
         </span>
       </div>
 
+      {/* Location selector in sidebar */}
+      {user.locations.length > 0 && (
+        <div className="px-3 pt-3 pb-1">
+          <div className="rounded-lg overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <LocationSelector
+              locations={user.locations}
+              activeLocationId={activeLocationId}
+              onSelect={handleLocationSelect}
+              expanded={locSelectorExpanded}
+              onToggleExpanded={() => setLocSelectorExpanded((v) => !v)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Dashboard link */}
-      <div className="px-3 pt-4 pb-2">
+      <div className="px-3 pt-3 pb-2">
         <Link
           href="/admin"
           className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
@@ -278,6 +313,7 @@ export function PortalShell({ user, children }: PortalShellProps) {
                       ? pathname === "/admin"
                       : pathname.startsWith(item.href)
                   }
+                  count={badgeCounts[item.href] ?? 0}
                 />
               ))}
             </div>
@@ -309,13 +345,7 @@ export function PortalShell({ user, children }: PortalShellProps) {
   );
 
   return (
-    <ShortlistProvider>
-      <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundColor: "#F5F5F4" }}>
-        {/* ── Client-facing site header ── */}
-        <div className="shrink-0">
-          <Header isAdmin />
-        </div>
-
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#F5F5F4" }}>
         {/* ── Portal body (sidebar + content) ── */}
         <div className="flex flex-1 overflow-hidden">
           {/* Desktop sidebar */}
@@ -341,40 +371,51 @@ export function PortalShell({ user, children }: PortalShellProps) {
           <div className="flex flex-1 flex-col overflow-hidden">
             {/* Top header bar */}
             <header
-              className="flex h-14 shrink-0 items-center justify-between border-b px-4 lg:px-6"
+              className="flex h-12 shrink-0 items-center justify-between border-b px-4 lg:px-6"
               style={{ backgroundColor: "#FFFFFF", borderColor: "#E4E5E8" }}
             >
               {/* Mobile hamburger */}
               <button
-                className="lg:hidden text-gray-500 hover:text-gray-700"
+                className="lg:hidden text-gray-400 hover:text-gray-600 transition-colors"
                 onClick={() => setMobileSidebarOpen(true)}
                 aria-label="Open navigation"
               >
                 <Menu className="h-5 w-5" />
               </button>
 
-              {/* Location selector */}
-              <div className="flex items-center gap-3">
-                {user.locations.length > 0 && (
-                  <div
-                    className="flex items-center gap-2 rounded-lg px-3 py-1.5"
-                    style={{ backgroundColor: "#142036" }}
+              {/* Public site links — desktop */}
+              <nav className="hidden lg:flex items-center gap-0.5" aria-label="Public site">
+                {[
+                  { href: "/inventory", label: "Inventory" },
+                  { href: "/finance", label: "Finance" },
+                  { href: "/trade-in", label: "Trade-In" },
+                  { href: "/about", label: "About" },
+                  { href: "/contact", label: "Contact" },
+                ].map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="px-3 py-1.5 rounded-lg text-sm transition-colors hover:bg-gray-50"
+                    style={{ color: "#5B5F6B" }}
                   >
-                    <LocationSelector
-                      locations={user.locations}
-                      activeLocationId={activeLocationId}
-                      onSelect={handleLocationSelect}
-                    />
-                  </div>
-                )}
-              </div>
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
 
               {/* Right side — account link */}
               <Link
                 href="/admin/account"
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-gray-50"
+                style={{ color: "#5B5F6B" }}
               >
-                <UserCircle className="h-5 w-5" aria-hidden="true" />
+                <div
+                  className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                  style={{ backgroundColor: "#142036" }}
+                  aria-hidden="true"
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
                 <span className="hidden sm:inline">{user.name}</span>
               </Link>
             </header>
@@ -385,7 +426,6 @@ export function PortalShell({ user, children }: PortalShellProps) {
             </main>
           </div>
         </div>
-      </div>
-    </ShortlistProvider>
+    </div>
   );
 }

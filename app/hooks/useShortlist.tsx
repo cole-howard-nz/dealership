@@ -32,7 +32,8 @@ export function ShortlistProvider({ children }: { children: ReactNode }) {
   // Keeping standard empty arrays to guarantee identical Server/Client initial HTML strings (prevents Hydration error)
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [favourites, setFavourites] = useState<string[]>([]);
-  const [_, setHydrated] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_hydrated, setHydrated] = useState(false);
 
   // Load persisted values once, client-side only, after the initial render has committed.
   useEffect(() => {

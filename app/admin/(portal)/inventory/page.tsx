@@ -6,6 +6,7 @@ import { prisma } from "../../../lib/prisma";
 import { format } from "date-fns";
 import { Package, Plus, MapPin } from "lucide-react";
 import type { VehicleStatus } from "@prisma/client";
+import { InventoryFilters } from "./InventoryFilters";
 
 export const metadata: Metadata = {
   title: "Inventory — Northbridge Motors Staff Portal",
@@ -18,7 +19,7 @@ const STATUS_CONFIG: Record<VehicleStatus, { label: string; bg: string; text: st
   ARCHIVED:  { label: "Archived",  bg: "#F3F4F6", text: "#9CA3AF", border: "#E5E7EB" },
 };
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 interface PageProps {
   searchParams: Promise<{
@@ -89,8 +90,8 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="max-w-screen-xl">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3 shrink-0">
         <div>
           <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
             Inventory
@@ -112,48 +113,10 @@ export default async function InventoryPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filters */}
-      <form method="GET" action="/admin/inventory" className="flex flex-wrap gap-2 mb-5">
-        {sp.loc && <input type="hidden" name="loc" value={sp.loc} />}
-        <input
-          type="search"
-          name="q"
-          defaultValue={q}
-          placeholder="Search make, model, VIN…"
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none flex-1 min-w-[200px]"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}
-        />
-        <select
-          name="status"
-          defaultValue={statusFilter ?? ""}
-          className="rounded-lg border px-3 py-2 text-sm focus:outline-none"
-          style={{ borderColor: "#E4E5E8", color: "#13151A" }}
-        >
-          <option value="">All statuses</option>
-          <option value="AVAILABLE">Available</option>
-          <option value="PENDING">Pending</option>
-          <option value="SOLD">Sold</option>
-          <option value="ARCHIVED">Archived</option>
-        </select>
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-lg text-sm font-medium"
-          style={{ backgroundColor: "#142036", color: "#fff" }}
-        >
-          Filter
-        </button>
-        {(q || statusFilter) && (
-          <Link
-            href={buildUrl({ q: undefined, status: undefined, page: undefined })}
-            className="px-4 py-2 rounded-lg text-sm font-medium border"
-            style={{ borderColor: "#E4E5E8", color: "#5B5F6B" }}
-          >
-            Clear
-          </Link>
-        )}
-      </form>
+      <InventoryFilters currentQ={q} currentStatus={statusFilter ?? ""} />
 
       {/* Table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
+      <div className="flex-1 min-h-0 rounded-xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#E4E5E8" }}>
         {vehicles.length === 0 ? (
           <div className="py-16 text-center">
             <Package className="h-10 w-10 mx-auto mb-3 opacity-20" style={{ color: "#5B5F6B" }} />
@@ -171,9 +134,9 @@ export default async function InventoryPage({ searchParams }: PageProps) {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-auto h-full">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ borderBottom: "1px solid #E4E5E8", backgroundColor: "#F9FAFB" }}>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Vehicle</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "#5B5F6B" }}>Price</th>
@@ -246,7 +209,7 @@ export default async function InventoryPage({ searchParams }: PageProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm" style={{ color: "#5B5F6B" }}>
+        <div className="flex items-center justify-between mt-4 text-sm shrink-0" style={{ color: "#5B5F6B" }}>
           <span>Page {page} of {totalPages}</span>
           <div className="flex gap-2">
             {page > 1 && (

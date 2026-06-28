@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { requireAuth } from "../../../lib/auth-helpers";
+import { prisma } from "../../../lib/prisma";
 import { AccountForm } from "./AccountForm";
+import { NotificationPrefsForm } from "../../../components/portal/NotificationPrefsForm";
+import { updateNotificationPrefs } from "./actions";
 
 export const metadata: Metadata = {
   title: "My Account — Northbridge Motors Staff Portal",
@@ -9,8 +12,15 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   const session = await requireAuth();
 
+  const userRow = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { notificationPreferences: true },
+  });
+  const notifPrefs = (userRow?.notificationPreferences ?? {}) as Record<string, boolean | undefined>;
+  const notifAction = updateNotificationPrefs.bind(null, session.user.id);
+
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-bold" style={{ color: "#13151A" }}>
           My Account
@@ -78,7 +88,25 @@ export default async function AccountPage() {
       </div>
 
       {/* Change password card */}
-      <AccountForm userId={session.user.id} />
+      <div className="mb-6">
+        <AccountForm userId={session.user.id} />
+      </div>
+
+      {/* Notification preferences */}
+      <div
+        className="rounded-xl border bg-white shadow-sm"
+        style={{ borderColor: "#E4E5E8" }}
+      >
+        <div className="px-5 py-4 border-b" style={{ borderColor: "#E4E5E8" }}>
+          <h2 className="font-heading text-base font-bold" style={{ color: "#13151A" }}>
+            Email Notifications
+          </h2>
+          <p className="text-sm mt-0.5" style={{ color: "#5B5F6B" }}>
+            Choose which events send you an email notification.
+          </p>
+        </div>
+        <NotificationPrefsForm action={notifAction} currentPrefs={notifPrefs} />
+      </div>
     </div>
   );
 }

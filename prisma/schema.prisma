@@ -43,17 +43,27 @@ model Role {
   users User[]
 }
 
+// ─── System Settings (key-value store) ───────────────────────────────────────
+
+model Setting {
+  key       String   @id
+  /// JSON-encoded string value
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Location ─────────────────────────────────────────────────────────────────
 
 model Location {
-  id        String   @id @default(cuid())
-  name      String   // e.g. "Wellington Yard"
-  address   String?
-  phone     String?
-  email     String?  // for Phase 4 notifications
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  name                String   // e.g. "Wellington Yard"
+  address             String?
+  phone               String?
+  email               String?  // notification target email
+  notifyOnNewRequest  Boolean  @default(true) // send to location email on new request
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   users               UserLocation[]
   auditLog            AuditLog[]
@@ -61,6 +71,7 @@ model Location {
   tradeInRequests     TradeInRequest[]
   financeApplications FinanceApplication[]
   vehicles            Vehicle[]
+  testDriveBookings   TestDriveBooking[]
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────
@@ -76,11 +87,14 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   lastLoginAt  DateTime?
+  /// Per-type notification opt-outs. Keys: "contact.new", "tradein.new", "finance.new". false = opted out; absent = default on.
+  notificationPreferences Json     @default("{}")
 
-  locations UserLocation[]
-  sessions  Session[]
-  auditLogs AuditLog[]
-  notes     Note[]
+  locations          UserLocation[]
+  sessions           Session[]
+  auditLogs          AuditLog[]
+  notes              Note[]
+  passwordResetTokens PasswordResetToken[]
 
   // Assigned requests (back-relations)
   assignedContactRequests     ContactRequest[]     @relation("ContactRequestAssignee")
@@ -135,6 +149,7 @@ model VerificationToken {
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique
   expires   DateTime
   used      Boolean  @default(false)
@@ -277,6 +292,28 @@ model Note {
   @@index([financeApplicationId])
 }
 
+// ─── Phase 5: Test drive bookings ─────────────────────────────────────────────
+
+model TestDriveBooking {
+  id               String        @id @default(cuid())
+  name             String
+  email            String
+  phone            String
+  vehicleId        String?
+  vehicle          Vehicle?      @relation(fields: [vehicleId], references: [id])
+  locationId       String
+  location         Location      @relation(fields: [locationId], references: [id])
+  preferredDate    String        // ISO date string e.g. "2026-07-15"
+  preferredTime    String        // "Morning" | "Afternoon" | "Evening"
+  licenceConfirmed Boolean
+  status           RequestStatus @default(NEW)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([locationId])
+  @@index([createdAt])
+}
+
 // ─── Phase 3: Vehicle inventory ───────────────────────────────────────────────
 
 model Vehicle {
@@ -311,6 +348,7 @@ model Vehicle {
   locationId          String
   location            Location      @relation(fields: [locationId], references: [id])
   financeApplications FinanceApplication[]
+  testDriveBookings   TestDriveBooking[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 

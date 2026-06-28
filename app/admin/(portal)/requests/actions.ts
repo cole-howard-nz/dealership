@@ -231,6 +231,81 @@ export async function addNote(
   return { error: null };
 }
 
+// ─── Edit note ────────────────────────────────────────────────────────────────
+
+export async function editNote(
+  noteId: string,
+  body: string
+): Promise<ActionResult> {
+  const session = await requireAuth();
+
+  const note = await prisma.note.findUnique({
+    where: { id: noteId },
+    select: {
+      authorId: true,
+      contactRequestId: true,
+      tradeInRequestId: true,
+      financeApplicationId: true,
+    },
+  });
+
+  if (!note) return { error: "Note not found." };
+  if (note.authorId !== session.user.id) return { error: "Only the author can edit a note." };
+
+  const parsed = noteSchema.safeParse(body);
+  if (!parsed.success) return { error: parsed.error.errors[0].message };
+
+  await prisma.note.update({ where: { id: noteId }, data: { body: parsed.data } });
+
+  const entityType: EntityType = note.contactRequestId
+    ? "ContactRequest"
+    : note.tradeInRequestId
+    ? "TradeInRequest"
+    : "FinanceApplication";
+  const entityId =
+    note.contactRequestId ?? note.tradeInRequestId ?? note.financeApplicationId ?? "";
+  revalidatePath(`${ENTITY_META[entityType].revalidatePath}/${entityId}`);
+
+  return { error: null };
+}
+
+// ─── Delete note ──────────────────────────────────────────────────────────────
+
+export async function deleteNote(noteId: string): Promise<ActionResult> {
+  const session = await requireAuth();
+
+  const note = await prisma.note.findUnique({
+    where: { id: noteId },
+    select: {
+      authorId: true,
+      contactRequestId: true,
+      tradeInRequestId: true,
+      financeApplicationId: true,
+    },
+  });
+
+  if (!note) return { error: "Note not found." };
+
+  const entityType: EntityType = note.contactRequestId
+    ? "ContactRequest"
+    : note.tradeInRequestId
+    ? "TradeInRequest"
+    : "FinanceApplication";
+  const meta = ENTITY_META[entityType];
+
+  const isAuthor = note.authorId === session.user.id;
+  const hasUpdatePerm = hasPermission(session.user.role.permissions, meta.updatePermission);
+  if (!isAuthor && !hasUpdatePerm) return { error: "Permission denied." };
+
+  const entityId =
+    note.contactRequestId ?? note.tradeInRequestId ?? note.financeApplicationId ?? "";
+
+  await prisma.note.delete({ where: { id: noteId } });
+  revalidatePath(`${meta.revalidatePath}/${entityId}`);
+
+  return { error: null };
+}
+
 // ─── Set estimated value (trade-in only) ─────────────────────────────────────
 
 const estimateSchema = z

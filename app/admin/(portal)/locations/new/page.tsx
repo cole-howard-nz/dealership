@@ -13,7 +13,7 @@ export default async function NewLocationPage() {
   await requirePermission("locations.manage");
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <Link href="/admin/locations" className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"
         style={{ color: "#5B5F6B" }}>
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />

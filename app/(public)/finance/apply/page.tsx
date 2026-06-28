@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -9,10 +9,12 @@ import { Button } from "../../../components/Button";
 import { EMAIL_REGEX, NZ_PHONE_REGEX } from "../../../lib/format";
 import type { FinanceApplication } from "../../../types";
 
+interface Location { id: string; name: string }
+
 const STORAGE_KEY = "nb-finance-application-draft";
 const STEPS = ["Personal details", "Employment & income", "Loan preferences", "Review & submit"];
 
-type FormState = Omit<FinanceApplication, "termMonths"> & { termMonths: number };
+type FormState = Omit<FinanceApplication, "termMonths"> & { termMonths: number; locationId: string };
 
 function loadDraft(params: URLSearchParams): FormState {
   const base: FormState = {
@@ -23,6 +25,7 @@ function loadDraft(params: URLSearchParams): FormState {
     depositAmount: Number(params.get("deposit") ?? 0),
     termMonths: Number(params.get("term") ?? 60),
     hasTradeIn: false, creditCheckConsent: false, termsAccepted: false,
+    locationId: "",
   };
   if (typeof window !== "undefined") {
     const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -38,10 +41,23 @@ function FinanceApplyForm() {
   const [form, setForm] = useState<FormState>(() => loadDraft(searchParams));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [locations, setLocations] = useState<Location[]>([]);
 
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
+
+  const setLocation = useCallback((id: string) => setForm((f) => ({ ...f, locationId: id })), []);
+
+  useEffect(() => {
+    fetch("/api/public/locations")
+      .then((r) => r.json())
+      .then((data: Location[]) => {
+        setLocations(data);
+        if (data.length === 1) setLocation(data[0].id);
+      })
+      .catch(() => {});
+  }, [setLocation]);
 
   function update(patch: Partial<FormState>) {
     setForm((f) => ({ ...f, ...patch }));
@@ -73,6 +89,7 @@ function FinanceApplyForm() {
     if (step === 3) {
       if (!form.creditCheckConsent) e.creditCheckConsent = "Credit check consent is required to proceed.";
       if (!form.termsAccepted) e.termsAccepted = "Please accept the terms and conditions.";
+      if (!form.locationId) e.locationId = "Please select a location.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -86,7 +103,12 @@ function FinanceApplyForm() {
     } else {
       setStatus("submitting");
       try {
-        await new Promise((r) => setTimeout(r, 1000));
+        const res = await fetch("/api/public/finance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error();
         sessionStorage.removeItem(STORAGE_KEY);
         router.push("/finance/success");
       } catch {
@@ -199,6 +221,16 @@ function FinanceApplyForm() {
                 <div className="flex justify-between"><span className="text-ink-muted">Term</span><span className="font-medium">{form.termMonths} months</span></div>
               </div>
               <p className="text-xs text-ink-muted">Need to change something? Use the Back button to update any step.</p>
+              {locations.length > 1 && (
+                <SelectField
+                  label="Which location are you applying through?"
+                  required
+                  value={form.locationId}
+                  onChange={(e) => update({ locationId: e.target.value })}
+                  options={locations.map((l) => ({ label: l.name, value: l.id }))}
+                  error={errors.locationId}
+                />
+              )}
               <CheckboxField
                 label={<>I consent to a credit check being run as part of this application. <Link href="/privacy" className="text-accent hover:underline">Privacy policy</Link>.</>}
                 checked={form.creditCheckConsent}

@@ -63,7 +63,7 @@ export default async function VehicleDetailPage({ params, searchParams }: PagePr
   const updateAction = updateVehicle.bind(null, id);
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <Link
         href="/admin/inventory"
         className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"

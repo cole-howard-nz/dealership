@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "../../../lib/prisma";
 import { requireAuth, logAction } from "../../../lib/auth-helpers";
 import bcrypt from "bcryptjs";
@@ -79,4 +80,30 @@ export async function changePasswordAction(
   });
 
   return { success: true, error: null };
+}
+
+// ─── Notification preferences ─────────────────────────────────────────────────
+
+const NOTIF_KEYS = ["contact.new", "tradein.new", "finance.new"] as const;
+
+export async function updateNotificationPrefs(
+  userId: string,
+  _prevState: { error: string | null; success: boolean },
+  formData: FormData
+): Promise<{ error: string | null; success: boolean }> {
+  const session = await requireAuth();
+  if (session.user.id !== userId) return { error: "Unauthorised.", success: false };
+
+  const prefs: Record<string, boolean> = {};
+  for (const key of NOTIF_KEYS) {
+    prefs[key] = formData.get(key) === "on";
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { notificationPreferences: prefs },
+  });
+
+  revalidatePath("/admin/account");
+  return { error: null, success: true };
 }

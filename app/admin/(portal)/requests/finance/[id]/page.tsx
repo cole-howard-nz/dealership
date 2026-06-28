@@ -9,7 +9,7 @@ import { StatusSelect } from "../../../../../components/portal/StatusSelect";
 import { AssigneeSelect } from "../../../../../components/portal/AssigneeSelect";
 import { AddNoteForm } from "../../../../../components/portal/AddNoteForm";
 import { NotesList } from "../../../../../components/portal/NotesList";
-import { updateRequestStatus, assignRequest, addNote } from "../../actions";
+import { updateRequestStatus, assignRequest, addNote, editNote, deleteNote } from "../../actions";
 import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, MapPin, AlertTriangle } from "lucide-react";
 
@@ -37,7 +37,7 @@ export default async function FinanceApplicationDetailPage({ params }: PageProps
       assignedTo: { select: { id: true, name: true } },
       notes: {
         orderBy: { createdAt: "desc" },
-        include: { author: { select: { name: true } } },
+        select: { id: true, body: true, authorId: true, createdAt: true, author: { select: { name: true } } },
       },
     },
   });
@@ -71,7 +71,7 @@ export default async function FinanceApplicationDetailPage({ params }: PageProps
   const shortId = id.slice(-6).toUpperCase();
 
   return (
-    <div className="max-w-screen-xl">
+    <div>
       <Link
         href="/admin/requests/finance"
         className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"
@@ -224,7 +224,13 @@ export default async function FinanceApplicationDetailPage({ params }: PageProps
                 />
               </div>
             )}
-            <NotesList notes={application.notes} />
+            <NotesList
+                notes={application.notes}
+                currentUserId={session.user.id}
+                canUpdate={canUpdate}
+                editNoteAction={editNote}
+                deleteNoteAction={deleteNote}
+              />
           </Panel>
         </div>
       </div>

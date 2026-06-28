@@ -27,7 +27,7 @@ export default async function StaffInvitePage() {
   const availableRoles = canAssignOwner ? roles : roles.filter((r) => !r.isSystem);
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <Link
         href="/admin/staff"
         className="inline-flex items-center gap-1.5 text-sm mb-5 hover:underline"
