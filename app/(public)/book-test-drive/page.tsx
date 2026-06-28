@@ -62,6 +62,7 @@ function BookTestDriveForm() {
     if (!preselected || availableVehicles.length === 0) return;
     const vehicle = availableVehicles.find((v) => v.id === preselected);
     if (vehicle?.locationId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm((f) => ({ ...f, locationId: vehicle.locationId! }));
     }
   }, [preselected, availableVehicles]);

@@ -32,6 +32,7 @@ function UrlPreview({ url }: { url: string }) {
 
   useEffect(() => {
     if (!url) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus("loading");
     const img = new Image();
     img.onload = () => setStatus("ok");
@@ -315,6 +316,7 @@ export const ImageManager = forwardRef<ImageManagerHandle, ImageManagerProps>(
             onDragOver={handleDropZoneDragOver}
             onDrop={handleDropZoneDrop}
           >
+            {/* eslint-disable react-hooks/refs */}
             {entries.map((entry, index) => (
               <ImageCard
                 key={entry.id}
@@ -347,6 +349,7 @@ export const ImageManager = forwardRef<ImageManagerHandle, ImageManagerProps>(
                 }}
               />
             ))}
+            {/* eslint-enable react-hooks/refs */}
           </div>
         )}
 

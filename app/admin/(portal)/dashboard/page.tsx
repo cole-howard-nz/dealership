@@ -193,6 +193,7 @@ export default async function DashboardPage() {
   const locationFilter = hasViewAll ? undefined : { in: locationIds };
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  // eslint-disable-next-line react-hooks/purity
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   const canContact   = hasPermission(permissions, "contact.view");

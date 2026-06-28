@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Stop-Process -Id 16472 -Force)"
+      "PowerShell(Stop-Process -Id 16472 -Force)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)"
     ]
   }
 }
