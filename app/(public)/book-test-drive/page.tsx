@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { TextField, SelectField, CheckboxField } from "../../components/FormFields";
 import { Button } from "../../components/Button";
 import { EMAIL_REGEX, NZ_PHONE_REGEX } from "../../lib/format";
-import { vehicles } from "../../data/vehicles";
+import type { Vehicle } from "../../types";
+
+interface Location { id: string; name: string }
 
 function BookTestDriveForm() {
   const router = useRouter();
@@ -21,14 +23,30 @@ function BookTestDriveForm() {
     phone: "",
     preferredDate: "",
     preferredTime: "",
-    location: "Auckland",
+    locationId: "",
     licenceConfirmed: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/locations")
+      .then((r) => r.json())
+      .then((data: Location[]) => {
+        setLocations(data);
+        if (data.length === 1) setForm((f) => ({ ...f, locationId: data[0].id }));
+      })
+      .catch(() => {});
+
+    fetch("/api/public/vehicles")
+      .then((r) => r.json())
+      .then((data: Vehicle[]) => setAvailableVehicles(data.filter((v) => v.status === "Available")))
+      .catch(() => {});
+  }, []);
 
   const today = new Date().toISOString().split("T")[0];
-  const availableVehicles = vehicles.filter((v) => v.status === "Available");
 
   function validate(): boolean {
     const e: Record<string, string> = {};
@@ -37,6 +55,7 @@ function BookTestDriveForm() {
     if (!NZ_PHONE_REGEX.test(form.phone)) e.phone = "Enter a valid NZ phone number.";
     if (!form.preferredDate || form.preferredDate < today) e.preferredDate = "Choose today or a future date.";
     if (!form.preferredTime) e.preferredTime = "Choose a preferred time.";
+    if (!form.locationId) e.locationId = "Please select a location.";
     if (!form.licenceConfirmed) e.licenceConfirmed = "Please confirm you'll bring a valid licence.";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -47,7 +66,12 @@ function BookTestDriveForm() {
     if (!validate()) return;
     setStatus("submitting");
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      const res = await fetch("/api/public/test-drive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
       router.push("/book-test-drive/success");
     } catch {
       setStatus("error");
@@ -100,6 +124,17 @@ function BookTestDriveForm() {
               ]}
               error={errors.preferredTime} />
           </div>
+
+          {locations.length > 1 && (
+            <SelectField
+              label="Which location?"
+              required
+              value={form.locationId}
+              onChange={(e) => setForm({ ...form, locationId: e.target.value })}
+              options={locations.map((l) => ({ label: l.name, value: l.id }))}
+              error={errors.locationId}
+            />
+          )}
 
           <CheckboxField
             label="I'll bring a valid NZ driver's licence to the test drive."

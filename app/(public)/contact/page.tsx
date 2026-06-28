@@ -1,15 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, ArrowRight } from "lucide-react";
-import { TextField, TextAreaField } from "../../components/FormFields";
+import { TextField, TextAreaField, SelectField } from "../../components/FormFields";
 import { Button } from "../../components/Button";
 import { EMAIL_REGEX, NZ_PHONE_REGEX } from "../../lib/format";
 
+interface Location { id: string; name: string }
+
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", locationId: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [locations, setLocations] = useState<Location[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/locations")
+      .then((r) => r.json())
+      .then((data: Location[]) => {
+        setLocations(data);
+        if (data.length === 1) setForm((f) => ({ ...f, locationId: data[0].id }));
+      })
+      .catch(() => {});
+  }, []);
 
   function validate(): boolean {
     const e: Record<string, string> = {};
@@ -17,6 +30,7 @@ export default function ContactPage() {
     if (!EMAIL_REGEX.test(form.email)) e.email = "Enter a valid email address.";
     if (!NZ_PHONE_REGEX.test(form.phone)) e.phone = "Enter a valid NZ phone number.";
     if (!form.message || form.message.length < 5) e.message = "Tell us a little about what you need.";
+    if (!form.locationId) e.locationId = "Please select a location.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -25,8 +39,17 @@ export default function ContactPage() {
     e.preventDefault();
     if (!validate()) return;
     setStatus("submitting");
-    await new Promise((r) => setTimeout(r, 800));
-    setStatus("success");
+    try {
+      const res = await fetch("/api/public/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -110,6 +133,16 @@ export default function ContactPage() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   error={errors.email}
                 />
+                {locations.length > 1 && (
+                  <SelectField
+                    label="Which location are you enquiring about?"
+                    required
+                    value={form.locationId}
+                    onChange={(e) => setForm({ ...form, locationId: e.target.value })}
+                    options={locations.map((l) => ({ label: l.name, value: l.id }))}
+                    error={errors.locationId}
+                  />
+                )}
                 <TextAreaField
                   label="Message"
                   required

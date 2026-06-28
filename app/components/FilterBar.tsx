@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { SlidersHorizontal, ChevronDown, X, Search } from "lucide-react";
-import type { BodyType, Transmission, FuelType } from "../types";
-import { vehicles } from "../data/vehicles";
+import type { BodyType, Transmission, FuelType, Vehicle } from "../types";
 
 export interface InventoryFilters {
   search: string;
@@ -35,8 +34,7 @@ const fuelTypes: FuelType[] = ["Petrol", "Diesel", "Hybrid", "PHEV", "EV"];
  * Returns true if the vehicle matches a free-text search string.
  * Searches across make, model, variant, transmission, fuelType, colour, location, bodyType.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function vehicleMatchesSearch(vehicle: Parameters<typeof vehicles[0]["make"]["toLowerCase"]> extends never ? any : (typeof vehicles)[0], query: string): boolean {
+export function vehicleMatchesSearch(vehicle: Vehicle, query: string): boolean {
   if (!query.trim()) return true;
   const q = query.toLowerCase();
   const fields = [
@@ -57,6 +55,8 @@ export function vehicleMatchesSearch(vehicle: Parameters<typeof vehicles[0]["mak
 interface Props {
   filters: InventoryFilters;
   onChange: (f: InventoryFilters) => void;
+  /** Pre-derived makes list from the live vehicle dataset. Falls back to static data if omitted. */
+  makes?: string[];
 }
 
 // ─── Custom Select ────────────────────────────────────────────────────────────
@@ -318,9 +318,9 @@ function SearchBar({ value, onChange }: SearchBarProps) {
 }
 
 // ─── FilterBar ────────────────────────────────────────────────────────────────
-export function FilterBar({ filters, onChange }: Props) {
+export function FilterBar({ filters, onChange, makes: makesProp }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const makes = Array.from(new Set(vehicles.map((v) => v.make))).sort();
+  const makes = makesProp ?? [];
 
   const priceError = filters.minPrice && filters.maxPrice && Number(filters.minPrice) > Number(filters.maxPrice)
     ? "Min price must be lower than max." : "";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -84,7 +84,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 // ─── Sidebar nav item ─────────────────────────────────────────────────────────
 
-function SideNavItem({ item, active }: { item: NavItem; active: boolean }) {
+function SideNavItem({ item, active, count = 0 }: { item: NavItem; active: boolean; count?: number }) {
   const Icon = item.icon;
   return (
     <Link
@@ -96,7 +96,16 @@ function SideNavItem({ item, active }: { item: NavItem; active: boolean }) {
       }`}
     >
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {count > 0 && (
+        <span
+          className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none text-white"
+          style={{ backgroundColor: "#E15A2C", minWidth: "18px", textAlign: "center" }}
+          aria-label={`${count} new`}
+        >
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
     </Link>
   );
 }
@@ -199,6 +208,30 @@ export function PortalShell({ user, children }: PortalShellProps) {
     (searchParams.get("loc") as string | null) ??
     (user.locations.length === 1 ? user.locations[0].id : "all");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>({});
+
+  const fetchBadgeCounts = useCallback(async () => {
+    try {
+      const loc = activeLocationId === "all" ? "" : `?loc=${activeLocationId}`;
+      const res = await fetch(`/api/portal/badge-counts${loc}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { contact: number; tradein: number; finance: number };
+      setBadgeCounts({
+        "/admin/requests/contact": data.contact,
+        "/admin/requests/trade-in": data.tradein,
+        "/admin/requests/finance": data.finance,
+      });
+    } catch {
+      // silently ignore — badges will just show 0
+    }
+  }, [activeLocationId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBadgeCounts();
+    const interval = setInterval(fetchBadgeCounts, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchBadgeCounts]);
 
   const handleLocationSelect = (id: string | "all") => {
     const next = new URLSearchParams(searchParams.toString());
@@ -278,6 +311,7 @@ export function PortalShell({ user, children }: PortalShellProps) {
                       ? pathname === "/admin"
                       : pathname.startsWith(item.href)
                   }
+                  count={badgeCounts[item.href] ?? 0}
                 />
               ))}
             </div>

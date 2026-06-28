@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Info } from "lucide-react";
@@ -21,6 +21,8 @@ const MODIFICATION_TYPES = [
   { label: "Other modifications", value: "Other" },
 ];
 
+interface Location { id: string; name: string }
+
 interface FormState {
   name: string;
   email: string;
@@ -36,6 +38,7 @@ interface FormState {
   vehicleDescription: string;
   outstandingFinance: boolean;
   preferredContact: string;
+  locationId: string;
 }
 
 export default function TradeInSubmitPage() {
@@ -50,9 +53,21 @@ export default function TradeInSubmitPage() {
     vehicleDescription: "",
     outstandingFinance: false,
     preferredContact: "Phone",
+    locationId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [locations, setLocations] = useState<Location[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/locations")
+      .then((r) => r.json())
+      .then((data: Location[]) => {
+        setLocations(data);
+        if (data.length === 1) setForm((f) => ({ ...f, locationId: data[0].id }));
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleModification(value: string) {
     setForm((f) => ({
@@ -79,6 +94,7 @@ export default function TradeInSubmitPage() {
     if (!form.condition) e.condition = "Select a condition.";
     if (form.isModified && form.modifications.length === 0)
       e.modifications = "Select at least one modification type.";
+    if (!form.locationId) e.locationId = "Please select a location.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -88,7 +104,16 @@ export default function TradeInSubmitPage() {
     if (!validate()) return;
     setStatus("submitting");
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      const res = await fetch("/api/public/trade-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          vehicleYear: Number(form.vehicleYear),
+          odometerKm: Number(form.odometerKm),
+        }),
+      });
+      if (!res.ok) throw new Error();
       router.push("/trade-in/success");
     } catch {
       setStatus("error");
@@ -128,6 +153,16 @@ export default function TradeInSubmitPage() {
               <SelectField label="Preferred contact method" value={form.preferredContact}
                 onChange={(e) => setForm({ ...form, preferredContact: e.target.value })}
                 options={[{ label: "Phone", value: "Phone" }, { label: "Email", value: "Email" }]} />
+              {locations.length > 1 && (
+                <SelectField
+                  label="Which location are you submitting to?"
+                  required
+                  value={form.locationId}
+                  onChange={(e) => setForm({ ...form, locationId: e.target.value })}
+                  options={locations.map((l) => ({ label: l.name, value: l.id }))}
+                  error={errors.locationId}
+                />
+              )}
             </div>
           </div>
 
