@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Northbridge Motors
+
+A full-stack dealership management platform with a public-facing vehicle inventory site and a private staff portal for managing requests, inventory, and team operations.
+
+---
+
+## Overview
+
+The platform is split into two surfaces:
+
+**Public site** — allows visitors to browse inventory, shortlist and compare vehicles, submit contact enquiries, trade-in valuations, finance applications, and test drive bookings.
+
+**Staff portal** — a role-gated internal dashboard for managing incoming requests, inventory, staff accounts, and system configuration across one or more dealership locations.
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Database | PostgreSQL via Prisma ORM |
+| Auth | NextAuth v5 (credentials + invite flow) |
+| Deployment | Vercel |
+
+---
+
+## Features
+
+### Public
+- Vehicle inventory with filtering by make, body type, price, and transmission
+- Shortlist (favourites) and side-by-side vehicle comparison
+- Contact, trade-in, finance, and test drive request forms
+- Per-vehicle enquiry form
+
+### Staff Portal
+- Dashboard with live request counts and recent activity feed
+- Request management — contact, trade-in, and finance queues with status tracking, assignment, and internal notes with edit/delete
+- Inventory management — create, edit, and update vehicle status
+- Staff management — invite-based onboarding, role assignment, location assignment
+- Role-based access control with granular permissions
+- Multi-location support with per-location filtering
+- Audit log of all staff actions
+- System settings — business details, email notifications, data retention policy
+
+---
+
+## Project Structure
+
+```
+app/
+├── (public)/          # Public-facing site
+│   ├── inventory/
+│   ├── finance/
+│   ├── trade-in/
+│   ├── contact/
+│   └── ...
+├── admin/
+│   ├── login/         # Auth (login, invite, password reset)
+│   └── (portal)/      # Staff portal (auth-gated)
+│       ├── dashboard/
+│       ├── requests/
+│       ├── inventory/
+│       ├── staff/
+│       ├── roles/
+│       ├── locations/
+│       ├── audit/
+│       └── settings/
+├── api/
+│   ├── public/        # Public form submission endpoints
+│   ├── portal/        # Internal portal API (badge counts etc.)
+│   └── cron/          # Scheduled job endpoints
+├── components/
+│   ├── portal/        # Staff portal UI components
+│   └── ...            # Shared public components
+└── lib/               # Auth, Prisma client, permissions, utilities
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+
+### Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Fill in DATABASE_URL, NEXTAUTH_SECRET, and any email settings
+
+# Push schema and generate client
+npx prisma db push
+npx prisma generate
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Secret for NextAuth session signing |
+| `NEXTAUTH_URL` | Base URL of the application |
+| `CRON_SECRET` | Shared secret for protected cron endpoints |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Access
 
-To learn more about Next.js, take a look at the following resources:
+The staff portal is invite-only. The first owner account must be seeded directly in the database. All subsequent staff are onboarded via email invite links generated from the portal.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Private. All rights reserved.
