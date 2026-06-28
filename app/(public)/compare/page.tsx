@@ -1,16 +1,25 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { GitCompare } from "lucide-react";
-import { vehicles } from "../../data/vehicles";
 import { useShortlist } from "../../hooks/useShortlist";
 import { formatPrice, formatOdometer } from "../../lib/format";
 import type { Vehicle } from "../../types/index";
 
 export default function ComparePage() {
   const { compareIds, removeFromCompare } = useShortlist();
-  const selected = vehicles.filter((v) => compareIds.includes(v.id));
+  const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    fetch("/api/public/vehicles")
+      .then((r) => r.json())
+      .then((data: Vehicle[]) => setAllVehicles(data))
+      .catch(() => {});
+  }, []);
+
+  const selected = allVehicles.filter((v) => compareIds.includes(v.id));
 
   if (selected.length === 0) {
     return (
